@@ -7,7 +7,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{
-  min-height:100vh;display:flex;flex-direction:column;
+  min-height:100vh;display:flex;column;
   justify-content:center;align-items:center;
   background:#000;font-family:Arial,sans-serif;
   overflow:hidden;overscroll-behavior:none;
@@ -19,7 +19,6 @@ body.horror{background:#000}
 body.flash{animation:flash 0.12s infinite alternate}
 @keyframes flash{0%{background:#000}100%{background:#1a0000}}
 
-/* 最后一次：血腥抽搐闪烁 */
 body.final_glitch {
   animation: final_glitch 0.04s infinite alternate !important;
 }
@@ -101,12 +100,16 @@ body.horror #tip{
 <audio id="aud_a" src="a.mp3" preload="auto">
 <audio id="aud_b" src="b.mp3" preload="auto">
 
+<!-- 恐怖底噪循环 -->
+<audio id="ambience" src="ambient.mp3" loop preload="auto" style="display:none;">
+
 <script>
 const isHorrorMode = Math.random() < 0.3;
 const body = document.body;
 const poop = document.getElementById('poop');
 const tip = document.getElementById('tip');
 const fullVideo = document.getElementById('fullVideo');
+const ambient = document.getElementById('ambience');
 
 const vid2 = document.getElementById('vid_2');
 const vid3 = document.getElementById('vid_3');
@@ -124,6 +127,7 @@ window.addEventListener('load', () => {
   vid3.load();
   audA.load();
   audB.load();
+  ambient.load();
 
   if (isHorrorMode) {
     body.classList.remove('normal');
@@ -180,6 +184,11 @@ poop.onclick = async () => {
     if (firstClickInHorror) {
       firstClickInHorror = false;
       isPlayingVideo = true;
+
+      // 启动底噪
+      ambient.volume = 0.25;
+      ambient.play().catch(()=>{});
+
       fullVideo.src = vid2.src;
       fullVideo.muted = false;
       fullVideo.volume = 1;
@@ -196,6 +205,7 @@ poop.onclick = async () => {
     }
 
     if (clickCount >= 999) {
+      ambient.pause();
       window.open("https://mc.kurogames.com/m/", "_blank");
       return;
     }
@@ -209,14 +219,12 @@ poop.onclick = async () => {
     clickCount++;
     let remain = NEED - clickCount;
 
-    // ———————————————————— 倒计时显示 ————————————————————
     if(remain > 0){
       tip.innerText = "还剩 " + remain + " 次";
     } else {
       tip.innerText = "结束了...";
     }
 
-    // ———————————————————— 最后一次：血腥抽搐闪烁 ————————————————————
     if(remain === 1){
       body.classList.add("final_glitch");
     }
@@ -234,6 +242,7 @@ poop.onclick = async () => {
     }
 
     if (clickCount >= NEED) {
+      ambient.pause();
       clickCount = 999;
     }
 
