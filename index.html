@@ -3,8 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>世界上最忧郁的网站</title>
+  <title>...</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 0;
@@ -13,9 +19,24 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+      background: #000;
       font-family: 'Comic Sans MS', '微软雅黑', cursive, sans-serif;
       overflow: hidden;
+    }
+
+    /* 正常可爱模式 */
+    body.normal {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+    }
+
+    /* 恐怖闪烁模式 */
+    body.flash {
+      animation: flash 0.1s infinite alternate;
+    }
+
+    @keyframes flash {
+      0% { background: #000; }
+      100% { background: #220000; }
     }
 
     h1 {
@@ -24,6 +45,18 @@
       text-shadow: 3px 3px 0 #fff, 6px 6px 0 rgba(0,0,0,0.2);
       animation: bounce 1s infinite alternate;
       margin-bottom: 2rem;
+      z-index: 10;
+    }
+
+    body.horror h1 {
+      color: #ff2222;
+      text-shadow: 0 0 10px red, 0 0 30px red;
+      animation: horrorBounce 0.3s infinite alternate;
+    }
+
+    @keyframes horrorBounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
     }
 
     .emoji {
@@ -32,6 +65,12 @@
       filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
       cursor: pointer;
       transition: transform 0.15s ease;
+      z-index: 10;
+    }
+
+    body.horror .emoji {
+      filter: brightness(0.2) sepia(1) hue-rotate(0deg) saturate(10);
+      animation: rotate 1.5s linear infinite;
     }
 
     @keyframes shake {
@@ -78,9 +117,17 @@
       padding: 10px 20px;
       border-radius: 15px;
       text-shadow: 1px 1px 2px #000;
+      z-index: 10;
     }
 
-    #jumpVideo {
+    body.horror #tip {
+      color: #ff4444;
+      background: rgba(30,0,0,0.7);
+      text-shadow: 0 0 10px #ff0000;
+    }
+
+    /* 全屏视频 */
+    #fullVideo {
       position: fixed;
       top: 0;
       left: 0;
@@ -92,86 +139,122 @@
     }
   </style>
 </head>
-<body>
+<body class="normal">
 
   <h1>恭喜你找到了大便💩</h1>
   <div class="emoji" id="poop">💩</div>
   <div id="tip">再点 10 下有超级惊喜！</div>
-  <video id="jumpVideo" src="2.mp4"></video>
+
+  <video id="fullVideo"></video>
 
 <script>
-  function createConfetti() {
-    const colors = ['#ff6b6b','#4ecdc4','#45b7d1','#f9ca24','#6c5ce7'];
-    for(let i=0;i<15;i++){
-      const c=document.createElement('div');
-      c.className='confetti';
-      c.style.left=Math.random()*100+'vw';
-      c.style.background=colors[Math.floor(Math.random()*colors.length)];
-      c.style.animationDuration=(Math.random()*2+2)+'s';
-      document.body.appendChild(c);
-      setTimeout(()=>c.remove(),3000);
-    }
-  }
-  setInterval(createConfetti,1500);
+  // ==================== 进入时随机：70%正常 / 30%恐怖 ====================
+  let isHorrorMode = Math.random() < 0.3;
+  let isVideoPlaying = false;
+  let canClick = true;
 
+  const body = document.body;
   const poop = document.getElementById('poop');
   const tip = document.getElementById('tip');
-  const jumpVideo = document.getElementById('jumpVideo');
+  const fullVideo = document.getElementById('fullVideo');
 
   let clickCount = 0;
   const totalNeed = 10;
 
-  // 限制最多同时 5 个音效
-  const MAX_SOUND = 5;
-  let playingSounds = [];
+  // 音效限制
+  let currentSound = null;
 
-  function playSound() {
-    // 清理已结束的音频
-    playingSounds = playingSounds.filter(s => !s.ended);
-    if (playingSounds.length >= MAX_SOUND) return;
+  // ==================== 恐怖模式初始化 ====================
+  if (isHorrorMode) {
+    body.classList.remove('normal');
+    body.classList.add('horror');
 
-    const sound = new Audio('a.mp3');
-    sound.volume = 0.5;
-    sound.play().catch(() => {});
-    playingSounds.push(sound);
+    // 播放 2.mp4（开场突脸）
+    fullVideo.src = "2.mp4";
+    fullVideo.style.display = "block";
+    fullVideo.muted = false;
+    fullVideo.volume = 1.0;
+    fullVideo.play();
+    isVideoPlaying = true;
+
+    fullVideo.onended = () => {
+      fullVideo.style.display = "none";
+      isVideoPlaying = false;
+      body.classList.add('flash'); // 开启闪烁
+      tip.innerText = "不要..玩原神.";
+    };
   }
 
-  poop.addEventListener('click', () => {
+  // ==================== 点击逻辑 ====================
+  poop.addEventListener('click', async () => {
+    if (isVideoPlaying) return;
+    if (!canClick) return;
+
+    // 震动
     poop.classList.add('shake');
-    setTimeout(()=>poop.classList.remove('shake'),200);
+    setTimeout(() => poop.classList.remove('shake'), 200);
 
-    clickCount++;
-    const left = totalNeed - clickCount;
+    // ============= 恐怖模式 =============
+    if (isHorrorMode) {
+      canClick = false;
 
-    if (left > 0) {
-      tip.innerText = `再点 ${left} 下有超级惊喜！`;
-      playSound();
+      // 播放恐怖音效 b.mp3
+      if (currentSound) {
+        currentSound.pause();
+        currentSound.currentTime = 0;
+      }
+      currentSound = new Audio('b.mp3');
+      currentSound.volume = 1.0;
+      await currentSound.play().catch(()=>{});
+
+      // 等播完才能再点
+      currentSound.onended = () => {
+        canClick = true;
+      };
+
+      clickCount++;
+      tip.innerText = `已经点了 ${clickCount} 次...`;
+
+      // 第 5 下播放 3.mp4
+      if (clickCount === 5) {
+        fullVideo.src = "3.mp4";
+        fullVideo.style.display = "block";
+        fullVideo.play();
+        fullVideo.onended = () => {
+          fullVideo.style.display = "none";
+        };
+      }
+
+      // 点满 10 下：恐怖拉满
+      if (clickCount >= totalNeed) {
+        body.style.animation = "flash 0.05s infinite alternate";
+        tip.innerText = "都让你不要玩原神了";
+        clickCount = 999;
+      }
+
+      // 10 下之后再点 → 跳鸣潮（巨大反差）
+      if (clickCount === 999) {
+        window.open("https://www.wutheringwaves.com/", "_blank");
+      }
+
       return;
     }
 
-    // 点满 10 下
+    // ============= 正常模式 =============
+    const left = totalNeed - clickCount;
+    if (left > 0) {
+      clickCount++;
+      tip.innerText = `再点 ${left} 下有超级惊喜！`;
+      return;
+    }
+
+    // 正常模式满10下
     tip.innerText = "🎉 惊喜来啦！";
     clickCount = 0;
-
-    if (Math.random() < 0.3) {
-      // 突脸：不播搞笑音
-      jumpVideo.muted = false;
-      jumpVideo.volume = 1.0;
-      jumpVideo.style.display = 'block';
-      jumpVideo.play();
-
-      jumpVideo.onended = () => {
-        jumpVideo.style.display = 'none';
-        tip.innerText = "再点 10 下有超级惊喜！";
-      };
-    } else {
-      // 原神：播音效
-      playSound();
-      window.open('https://ys.mihoyo.com/', '_blank');
-      setTimeout(() => {
-        tip.innerText = "再点 10 下有超级惊喜！";
-      }, 1000);
-    }
+    window.open('https://ys.mihoyo.com/', '_blank');
+    setTimeout(() => {
+      tip.innerText = "再点 10 下有超级惊喜！";
+    }, 1000);
   });
 </script>
 </body>
