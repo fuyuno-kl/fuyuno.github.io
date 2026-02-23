@@ -34,7 +34,6 @@
       transition: transform 0.15s ease;
     }
 
-    /* 点击震动动画 */
     @keyframes shake {
       0%{transform: rotate(0deg) translate(0,0);}
       20%{transform: rotate(-2deg) translate(-2px,2px);}
@@ -68,31 +67,9 @@
     }
 
     @keyframes fall {
-      to {
-        transform: translateY(100vh) rotate(360deg);
-      }
+      to { transform: translateY(100vh) rotate(360deg); }
     }
 
-    .easter-egg {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0);
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 2rem 4rem;
-      border-radius: 20px;
-      font-size: 1.5rem;
-      transition: transform 0.5s;
-      z-index: 999;
-      text-align: center;
-    }
-
-    .easter-egg.show {
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    /* 点击提示 */
     #tip {
       margin-top: 30px;
       font-size: 24px;
@@ -102,69 +79,81 @@
       border-radius: 15px;
       text-shadow: 1px 1px 2px #000;
     }
+
+    #jumpVideo {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 9999;
+      display: none;
+    }
   </style>
 </head>
 <body>
+
   <h1>恭喜你找到了大便💩</h1>
   <div class="emoji" id="poop">💩</div>
   <div id="tip">再点 10 下有超级惊喜！</div>
-  <div class="easter-egg" id="egg">
-    你点你ma呢💩！<br>
-    <small>人家会坏掉的~</small>
-  </div>
+  <video id="jumpVideo" src="2.mp4"></video>
 
-  <script>
-    // 彩色纸屑
-    function createConfetti() {
-      const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7'];
-      for (let i = 0; i < 30; i++) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti';
-        confetti.style.left = Math.random() * 100 + 'vw';
-        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-        confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
-        document.body.appendChild(confetti);
-        setTimeout(() => confetti.remove(), 3000);
+<script>
+  function createConfetti() {
+    const colors = ['#ff6b6b','#4ecdc4','#45b7d1','#f9ca24','#6c5ce7'];
+    for(let i=0;i<15;i++){
+      const c=document.createElement('div');
+      c.className='confetti';
+      c.style.left=Math.random()*100+'vw';
+      c.style.background=colors[Math.floor(Math.random()*colors.length)];
+      c.style.animationDuration=(Math.random()*2+2)+'s';
+      document.body.appendChild(c);
+      setTimeout(()=>c.remove(),3000);
+    }
+  }
+  setInterval(createConfetti,1500);
+
+  const poop = document.getElementById('poop');
+  const tip = document.getElementById('tip');
+  const jumpVideo = document.getElementById('jumpVideo');
+
+  let clickCount = 0;
+  const totalNeed = 10;
+
+  poop.addEventListener('click', () => {
+    const sound = new Audio('a.mp3');
+    sound.volume = 0.5;
+    sound.play().catch(()=>{});
+
+    poop.classList.add('shake');
+    setTimeout(()=>poop.classList.remove('shake'),200);
+
+    clickCount++;
+    const left = totalNeed - clickCount;
+    if(left>0) tip.innerText = `再点 ${left} 下有超级惊喜！`;
+
+    if(clickCount >= totalNeed){
+      tip.innerText = "🎉 惊喜来啦！";
+      clickCount = 0;
+
+      if(Math.random() < 0.1){
+        // 10% 突脸鬼
+        jumpVideo.style.display = 'block';
+        jumpVideo.play();
+        jumpVideo.onended = () => {
+          jumpVideo.style.display = 'none';
+          tip.innerText = "再点 10 下有超级惊喜！";
+        };
+      } else {
+        // 90% 原神
+        window.open('https://ys.mihoyo.com/','_blank');
+        setTimeout(()=>{
+          tip.innerText = "再点 10 下有超级惊喜！";
+        },1000);
       }
     }
-    setInterval(createConfetti, 1000); // 降低频率不卡顿
-
-    const poop = document.getElementById('poop');
-    const egg = document.getElementById('egg');
-    const tip = document.getElementById('tip');
-
-    // 点击计数，关掉就重置
-    let clickCount = 0;
-    const totalNeed = 10;
-
-    poop.addEventListener('click', () => {
-      // 音效
-      const sound = new Audio('a.mp3');
-      sound.volume = 0.7;
-      sound.play().catch(err => {});
-
-      // 震动
-      poop.classList.add('shake');
-      setTimeout(() => poop.classList.remove('shake'), 200);
-
-      // 计数
-      clickCount++;
-      const left = totalNeed - clickCount;
-
-      if (left > 0) {
-        tip.innerText = `再点 ${left} 下有超级惊喜！`;
-      }
-
-      // 满10下触发原神
-      if (clickCount >= totalNeed) {
-        tip.innerText = "🎉 惊喜来啦！";
-        window.open('https://ys.mihoyo.com/', '_blank');
-        clickCount = 0;
-        setTimeout(() => {
-          tip.innerText = "再点 10 下有超级惊喜！";
-        }, 1000);
-      }
-    });
-  </script>
+  });
+</script>
 </body>
 </html>
