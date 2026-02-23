@@ -13,9 +13,11 @@ body{
   justify-content:center;
   align-items:center;
   background:#000;
-  font-family:Arial,sans-serif;
+  font-family:Arial, sans-serif, "Microsoft YaHei", "PingFang SC";
   overflow:hidden;
   overscroll-behavior:none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 body.normal{
   background:linear-gradient(135deg,#ff9a9e 0%,#fecfef 50%,#fecfef 100%);
@@ -34,12 +36,13 @@ body.final_glitch {
 }
 
 h1{
-  font-size:4rem;
+  font-size:clamp(2rem, 8vw, 4rem);
   color:#8B4513;
   text-shadow:3px 3px 0 #fff,6px 6px 0 rgba(0,0,0,0.2);
   animation:bounce 1s infinite alternate;
   margin-bottom: 2rem;
   text-align:center;
+  padding:0 1rem;
 }
 body.horror h1{
   color:#ff2222;
@@ -50,11 +53,12 @@ body.horror h1{
 @keyframes horrorBounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
 
 .emoji{
-  font-size:8rem;
+  font-size:clamp(4rem, 16vw, 8rem);
   animation:rotate 3s linear infinite;
   filter:drop-shadow(0 10px 10px rgba(0,0,0,0.3));
   cursor:pointer;
   margin-bottom: 2rem;
+  touch-action: manipulation;
 }
 body.horror .emoji{
   filter:brightness(0.1) sepia(1) saturate(10);
@@ -73,13 +77,14 @@ body.horror .emoji{
 .emoji.shake{animation:shake 0.2s ease}
 
 #tip{
-  font-size:22px;
+  font-size:clamp(1rem, 4vw, 22px);
   color:#fff;
   background:rgba(0,0,0,0.3);
   padding:10px 20px;
   border-radius:16px;
   z-index:90;
   text-align:center;
+  max-width:90%;
 }
 body.horror #tip{
   color:#ff4444;
@@ -93,7 +98,7 @@ body.horror #tip{
   left:0;
   width:100vw;
   height:100vh;
-  object-fit:cover;
+  object-fit:contain;
   z-index:9999;
   display:none;
   background:#000;
@@ -104,7 +109,7 @@ body.horror #tip{
 .warning{
   position:fixed;
   color:#ff0000;
-  font-size:32px;
+  font-size:clamp(1.5rem, 6vw, 32px);
   font-weight:bold;
   text-shadow:0 0 12px red;
   z-index:100;
@@ -266,90 +271,4 @@ function playHorrorSound() {
 }
 
 function handleHorrorClick() {
-  // 视频播放中或冷却中，直接返回
-  if (state.isPlayingVideo || !state.horror.canClick) return;
-
-  // 触发点击动画
-  poop.classList.add('shake');
-  setTimeout(() => poop.classList.remove('shake'), 200);
-
-  // 第一次点击：启动底噪+播放2.mp4（核心初始化）
-  if (state.horror.firstClick) {
-    state.horror.firstClick = false;
-    state.isPlayingVideo = true;
-
-    // 启动底噪（仅第一次触发，永久循环）
-    horrorMedia.ambient.volume = CONST.AMBIENT_VOLUME;
-    horrorMedia.ambient.currentTime = 0;
-    horrorMedia.ambient.play().catch(() => {});
-
-    // 播放2.mp4
-    fullVideo.src = horrorMedia.video2.src;
-    fullVideo.muted = false;
-    fullVideo.volume = 1;
-    fullVideo.loop = false;
-    fullVideo.style.display = 'block';
-    fullVideo.play().catch(() => {});
-
-    // 视频结束回调
-    fullVideo.onended = () => {
-      fullVideo.style.display = 'none';
-      state.isPlayingVideo = false;
-      body.classList.add('flash');
-      tip.innerText = `还剩 ${CONST.NEED_CLICK} 次`;
-    };
-    return;
-  }
-
-  // 点满后：停止底噪+跳转鸣潮
-  if (state.horror.clickCount >= CONST.NEED_CLICK) {
-    horrorMedia.ambient.pause();
-    window.open("https://mc.kurogames.com/m/", "_blank");
-    return;
-  }
-
-  // 开启3秒冷却（恐怖模式专属）
-  state.horror.canClick = false;
-  setTimeout(() => {
-    state.horror.canClick = true;
-  }, CONST.HORROR_CLICK_INTERVAL);
-
-  // 播放恐怖音效+显示警告
-  playHorrorSound();
-  showWarning();
-
-  // 计数更新+倒计时提示
-  state.horror.clickCount++;
-  const remain = CONST.NEED_CLICK - state.horror.clickCount;
-  tip.innerText = remain > 0 ? `还剩 ${remain} 次` : "结束了...";
-
-  // 最后1次：触发血腥抽搐闪烁
-  if (remain === 1) {
-    body.classList.add("final_glitch");
-  }
-
-  // 第5次点击：播放3.mp4
-  if (state.horror.clickCount === 5) {
-    state.isPlayingVideo = true;
-    fullVideo.src = horrorMedia.video3.src;
-    fullVideo.loop = false;
-    fullVideo.style.display = 'block';
-    fullVideo.play().catch(() => {});
-    fullVideo.onended = () => {
-      fullVideo.style.display = 'none';
-      state.isPlayingVideo = false;
-    };
-  }
-}
-
-// -------------------------- 根点击事件（模式分流，彻底隔离） --------------------------
-poop.onclick = () => {
-  if (IS_HORROR_MODE) {
-    handleHorrorClick();
-  } else {
-    handleNormalClick();
-  }
-};
-</script>
-</body>
-</html>
+  // 视频播放中或冷却中，直
