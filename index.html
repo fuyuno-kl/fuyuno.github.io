@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>世界上最忧郁的网站</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -10,7 +10,8 @@ body{
   min-height:100vh;display:flex;flex-direction:column;
   justify-content:center;align-items:center;
   background:#000;font-family:Arial,sans-serif;
-  overflow:hidden
+  overflow:hidden;
+  overscroll-behavior:none;
 }
 body.normal{
   background:linear-gradient(135deg,#ff9a9e 0%,#fecfef 50%,#fecfef 100%);
@@ -60,7 +61,24 @@ body.horror #tip{
 #fullVideo{
   position:fixed;top:0;left:0;width:100vw;height:100vh;
   object-fit:cover;z-index:9999;display:none;
-  background:#000;
+  background:#000;border:none;outline:none;
+}
+
+/* 不要玩原神 闪烁文字 */
+.warning{
+  position:fixed;
+  color:#ff0000;
+  font-size:32px;
+  font-weight:bold;
+  text-shadow:0 0 12px red;
+  z-index:100;
+  animation:warnFlash 0.2s 3;
+  pointer-events:none;
+}
+@keyframes warnFlash{
+  0%{opacity:0;transform:scale(0.8)}
+  50%{opacity:1;transform:scale(1.1)}
+  100%{opacity:0;transform:scale(0.8)}
 }
 </style>
 </head>
@@ -69,7 +87,15 @@ body.horror #tip{
 <h1>恭喜你找到了大便💩</h1>
 <div class="emoji" id="poop">💩</div>
 <div id="tip">再点 10 下有惊喜！</div>
-<video id="fullVideo" controlslist="nodownload noremoteplayback" disablepictureinpicture></video>
+
+<video
+  id="fullVideo"
+  controlslist="nodownload noremoteplayback"
+  disablepictureinpicture
+  disableremoteplayback
+  playsinline
+  webkit-playsinline
+></video>
 
 <script>
 const isHorrorMode = Math.random() < 0.3;
@@ -83,6 +109,29 @@ const NEED = 10;
 let canClick = true;
 let isPlayingVideo = false;
 
+const MAX_SOUND = 5;
+let playingSounds = [];
+
+function playFunnySound() {
+  playingSounds = playingSounds.filter(s => !s.ended);
+  if (playingSounds.length >= MAX_SOUND) return;
+  const s = new Audio('a.mp3');
+  s.volume = 0.5;
+  s.play().catch(()=>{});
+  playingSounds.push(s);
+}
+
+// 随机显示：不要玩原神
+function showWarning(){
+  const el = document.createElement('div');
+  el.className = 'warning';
+  el.innerText = '不要玩原神';
+  el.style.left = (10 + Math.random()*80)+'vw';
+  el.style.top = (10 + Math.random()*80)+'vh';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1000);
+}
+
 if (isHorrorMode) {
   body.classList.remove('normal');
   body.classList.add('horror');
@@ -94,13 +143,13 @@ if (isHorrorMode) {
   fullVideo.volume = 1;
   fullVideo.controls = false;
   isPlayingVideo = true;
-  fullVideo.play().catch(()=>{});
 
+  fullVideo.play().catch(()=>{});
   fullVideo.onended = () => {
     fullVideo.style.display = "none";
     isPlayingVideo = false;
     body.classList.add('flash');
-    tip.innerText = "不要玩原神.";
+    tip.innerText = "千万不要玩原神.";
   };
 }
 
@@ -117,17 +166,17 @@ poop.onclick = async () => {
       return;
     }
 
-    // 冷却 3 秒，不用等音频播完
     canClick = false;
     setTimeout(() => { canClick = true; }, 3000);
 
-    // 随机音调：0.6 ~ 1.3 之间随机，时高时低
+    // 恐怖音效 + 文字警告 同时出现
     const audio = new Audio("b.mp3");
     audio.volume = 1;
-    if (audio.playbackRate) {
+    try {
       audio.playbackRate = 0.6 + Math.random() * 0.7;
-    }
-    audio.play().catch(()=>{});
+      audio.play();
+    } catch(e) {}
+    showWarning(); // 这里！
 
     clickCount++;
     tip.innerText = `已点 ${clickCount} 次`;
@@ -146,20 +195,21 @@ poop.onclick = async () => {
 
     if (clickCount >= NEED) {
       body.style.animation = "flash 0.06s infinite alternate";
-      tip.innerText = "都说了不要玩原神";
+      tip.innerText = "还是要玩原神吗.";
       clickCount = 999;
     }
-
     return;
   }
 
   // 正常模式
+  playFunnySound();
   const left = NEED - clickCount;
   if (left > 0) {
     clickCount++;
     tip.innerText = `再点 ${NEED-clickCount} 下有惊喜！`;
     return;
   }
+
   tip.innerText = "🎉 惊喜来了！";
   clickCount = 0;
   window.open("https://ys.mihoyo.com/", "_blank");
