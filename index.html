@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>世界上最忧郁的网站</title>
+  <title>惊喜页面</title>
   <style>
     body {
       margin: 0;
@@ -88,10 +88,8 @@
   <div class="emoji" id="poop">💩</div>
   <div class="easter-egg" id="egg">
     你点你ma呢💩！<br>
-    <small>傻逼</small>
+    <small>FUYUNO</small>
   </div>
-
-  <audio id="poopSound" src="a.mp3">
 
   <script>
     // 生成彩色纸屑效果
@@ -109,14 +107,13 @@
     }
     setInterval(createConfetti, 500);
 
-    // 点击💩弹出彩蛋并播放音效（立即重置版）
+    // 点击💩弹出彩蛋并叠加播放音效
     const poop = document.getElementById('poop');
     const egg = document.getElementById('egg');
-    const sound = document.getElementById('poopSound');
 
     poop.addEventListener('click', () => {
-      sound.pause();
-      sound.currentTime = 0;
+      // 每次点击都创建一个新的音频实例，实现叠加效果
+      const sound = new Audio('a.mp3');
       sound.volume = 1.0;
       sound.play().catch(err => console.log(err));
       
