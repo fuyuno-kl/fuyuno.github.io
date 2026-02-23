@@ -84,10 +84,10 @@ body.horror #tip{
 <div class="emoji" id="poop">💩</div>
 <div id="tip">再点 10 下有惊喜！</div>
 
-<!-- 全屏视频 -->
-<video id="fullVideo" playsinline webkit-playsinline muted loop controlslist="nodownload" disablepictureinpicture disableremoteplayback></video>
+<!-- 全屏视频 已删除 loop，不再循环 -->
+<video id="fullVideo" playsinline webkit-playsinline controlslist="nodownload" disablepictureinpicture disableremoteplayback></video>
 
-<!-- 预加载所有媒体（页面刚进来就缓存） -->
+<!-- 预加载所有媒体 -->
 <video id="vid_2" src="2.mp4" preload="auto" style="display:none;"></video>
 <video id="vid_3" src="3.mp4" preload="auto" style="display:none;"></video>
 <audio id="aud_a" src="a.mp3" preload="auto">
@@ -100,7 +100,6 @@ const poop = document.getElementById('poop');
 const tip = document.getElementById('tip');
 const fullVideo = document.getElementById('fullVideo');
 
-// 缓存对象
 const vid2 = document.getElementById('vid_2');
 const vid3 = document.getElementById('vid_3');
 const audA = document.getElementById('aud_a');
@@ -112,9 +111,6 @@ let canClick = true;
 let isPlayingVideo = false;
 let firstClickInHorror = true;
 
-// =============================================
-// 页面一打开就强制缓存所有音视频 → 零延迟
-// =============================================
 window.addEventListener('load', () => {
   vid2.load();
   vid3.load();
@@ -128,7 +124,6 @@ window.addEventListener('load', () => {
   }
 });
 
-// 显示警告文字
 function showWarning() {
   const el = document.createElement('div');
   el.className = 'warning';
@@ -139,7 +134,6 @@ function showWarning() {
   setTimeout(() => el.remove(), 1000);
 }
 
-// 播放恐怖音效（随机音调）
 function playBSound() {
   const s = audB.cloneNode(true);
   s.volume = 1;
@@ -147,16 +141,12 @@ function playBSound() {
   s.play().catch(()=>{});
 }
 
-// 播放搞笑音效
 function playASound() {
   const s = audA.cloneNode(true);
   s.volume = 0.5;
   s.play().catch(()=>{});
 }
 
-// =============================================
-// 点击 💩
-// =============================================
 poop.onclick = async () => {
   if (isPlayingVideo) return;
   if (!canClick && isHorrorMode) return;
@@ -164,9 +154,7 @@ poop.onclick = async () => {
   poop.classList.add('shake');
   setTimeout(() => poop.classList.remove('shake'), 200);
 
-  // -------------------- 恐怖模式 --------------------
   if (isHorrorMode) {
-    // 第一次点击 → 播放2.mp4
     if (firstClickInHorror) {
       firstClickInHorror = false;
       isPlayingVideo = true;
@@ -174,6 +162,7 @@ poop.onclick = async () => {
       fullVideo.src = vid2.src;
       fullVideo.muted = false;
       fullVideo.volume = 1;
+      fullVideo.loop = false; // 强制不循环
       fullVideo.style.display = 'block';
       fullVideo.play().catch(()=>{});
 
@@ -186,13 +175,11 @@ poop.onclick = async () => {
       return;
     }
 
-    // 已经点满，再点跳转鸣潮
     if (clickCount >= 999) {
       window.open("https://mc.kurogames.com/m/", "_blank");
       return;
     }
 
-    // 3秒冷却
     canClick = false;
     setTimeout(() => canClick = true, 3000);
 
@@ -202,10 +189,10 @@ poop.onclick = async () => {
     clickCount++;
     tip.innerText = `已点 ${clickCount} 次`;
 
-    // 第5下播放3.mp4
     if (clickCount === 5) {
       isPlayingVideo = true;
       fullVideo.src = vid3.src;
+      fullVideo.loop = false;
       fullVideo.style.display = 'block';
       fullVideo.play().catch(()=>{});
       fullVideo.onended = () => {
@@ -214,7 +201,6 @@ poop.onclick = async () => {
       };
     }
 
-    // 点满10下 → 恐怖拉满
     if (clickCount >= NEED) {
       body.style.animation = "flash 0.06s infinite alternate";
       tip.innerText = "结束了...";
@@ -224,7 +210,6 @@ poop.onclick = async () => {
     return;
   }
 
-  // -------------------- 正常模式 --------------------
   playASound();
   const left = NEED - clickCount;
   if (left > 0) {
