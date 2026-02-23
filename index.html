@@ -139,7 +139,6 @@ body.horror #tip{
 <div class="emoji" id="poop">💩</div>
 <div id="tip">再点 10 下有惊喜！</div>
 
-<!-- VIA视频终极修复：先静音，再手动恢复音量，解决播放卡死 -->
 <video id="fullVideo" playsinline webkit-playsinline muted></video>
 
 <audio id="aSound" src="a.mp3">
@@ -153,6 +152,9 @@ console.log = function(){};
 console.error = function(){};
 
 const IS_HORROR_MODE = Math.random() < 0.3;
+const ua = navigator.userAgent.toLowerCase();
+const isVIA = ua.includes("via");
+const isQuark = ua.includes("quark");
 
 const body = document.body;
 const poop = document.getElementById('poop');
@@ -247,6 +249,22 @@ function playHorrorSound() {
   }
 }
 
+// 夸克视频修复：先清空再赋值，避免缓存导致的播放异常
+function playVideo(src) {
+  videoPlaying = true;
+  fullVideo.style.display = 'block';
+  fullVideo.src = ''; // 先清空，夸克不卡
+  setTimeout(() => {
+    fullVideo.src = src;
+    fullVideo.muted = true;
+    fullVideo.play();
+    setTimeout(() => {
+      fullVideo.muted = false;
+      fullVideo.volume = 1;
+    }, 100);
+  }, 50);
+}
+
 function horrorClick() {
   if(videoPlaying || !horrorCanClick) return;
   poop.classList.add('shake');
@@ -260,23 +278,24 @@ function horrorClick() {
     ambientSound.volume = 0.25;
     ambientSound.play();
 
-    // VIA视频核心修复：先静音播放，再恢复音量，解决卡死
-    fullVideo.src = video2.src;
-    fullVideo.style.display = 'block';
-    fullVideo.muted = true; // 先静音，VIA必能播放
-    fullVideo.play();
-    // 播放后100ms恢复音量，避免卡死
-    setTimeout(() => {
-      fullVideo.muted = false;
-      fullVideo.volume = 1;
-    }, 100);
-
-    fullVideo.onended = function() {
-      fullVideo.style.display = 'none';
-      videoPlaying = false;
-      body.classList.add('flash');
-      tip.innerText = `还剩 ${NEED_CLICK} 次`;
-    };
+    // VIA 终极方案：如果是 VIA，直接放弃视频，只播放底噪和音效
+    if (isVIA) {
+      // VIA 不播放视频，只保留底噪和音效，保证体验
+      setTimeout(() => {
+        videoPlaying = false;
+        body.classList.add('flash');
+        tip.innerText = `还剩 ${NEED_CLICK} 次`;
+      }, 2000);
+    } else {
+      // 其他浏览器（夸克/Chrome）正常播放
+      playVideo(video2.src);
+      fullVideo.onended = function() {
+        fullVideo.style.display = 'none';
+        videoPlaying = false;
+        body.classList.add('flash');
+        tip.innerText = `还剩 ${NEED_CLICK} 次`;
+      };
+    }
     return;
   }
 
@@ -300,19 +319,19 @@ function horrorClick() {
 
   if(horrorCount === 5) {
     videoPlaying = true;
-    // 视频3同样修复
-    fullVideo.src = video3.src;
-    fullVideo.style.display = 'block';
-    fullVideo.muted = true;
-    fullVideo.play();
-    setTimeout(() => {
-      fullVideo.muted = false;
-      fullVideo.volume = 1;
-    }, 100);
-    fullVideo.onended = function() {
-      fullVideo.style.display = 'none';
-      videoPlaying = false;
-    };
+    if (isVIA) {
+      // VIA 不播放视频3，直接跳过
+      setTimeout(() => {
+        videoPlaying = false;
+      }, 2000);
+    } else {
+      // 夸克/Chrome 正常播放
+      playVideo(video3.src);
+      fullVideo.onended = function() {
+        fullVideo.style.display = 'none';
+        videoPlaying = false;
+      };
+    }
   }
 }
 
