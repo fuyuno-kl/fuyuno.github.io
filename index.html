@@ -19,6 +19,16 @@ body.horror{background:#000}
 body.flash{animation:flash 0.12s infinite alternate}
 @keyframes flash{0%{background:#000}100%{background:#1a0000}}
 
+/* 最后一次：血腥抽搐闪烁 */
+body.final_glitch {
+  animation: final_glitch 0.04s infinite alternate !important;
+}
+@keyframes final_glitch {
+  0%{background:#000; filter:contrast(1.5) saturate(2) hue-rotate(0deg);}
+  50%{background:#200000; filter:contrast(2) saturate(3) hue-rotate(10deg);}
+  100%{background:#000; filter:contrast(1.5) saturate(2) hue-rotate(0deg);}
+}
+
 h1{
   font-size:4rem;color:#8B4513;
   text-shadow:3px 3px 0 #fff,6px 6px 0 rgba(0,0,0,0.2);
@@ -84,10 +94,8 @@ body.horror #tip{
 <div class="emoji" id="poop">💩</div>
 <div id="tip">再点 10 下有惊喜！</div>
 
-<!-- 全屏视频 已删除 loop，不再循环 -->
 <video id="fullVideo" playsinline webkit-playsinline controlslist="nodownload" disablepictureinpicture disableremoteplayback></video>
 
-<!-- 预加载所有媒体 -->
 <video id="vid_2" src="2.mp4" preload="auto" style="display:none;"></video>
 <video id="vid_3" src="3.mp4" preload="auto" style="display:none;"></video>
 <audio id="aud_a" src="a.mp3" preload="auto">
@@ -134,43 +142,24 @@ function showWarning() {
   setTimeout(() => el.remove(), 1000);
 }
 
-// =============================================
-// 核心修改：随机恐怖畸变音效
-// 40%正常 + 20%极速抽搐 + 20%低频失真 + 20%随机颤音
-// =============================================
 function playBSound() {
   const s = audB.cloneNode(true);
   s.volume = 1;
-  
   const rand = Math.random();
-  
-  // 40% 概率：正常播放（保持原恐怖感）
   if (rand < 0.4) {
     s.playbackRate = 0.9 + Math.random() * 0.2;
-  }
-  // 20% 概率：极速抽搐（尖锐、鬼畜）
-  else if (rand < 0.6) {
+  } else if (rand < 0.6) {
     s.playbackRate = 1.8 + Math.random() * 0.5;
-  }
-  // 20% 概率：低频失真（沉闷、压抑）
-  else if (rand < 0.8) {
+  } else if (rand < 0.8) {
     s.playbackRate = 0.4 + Math.random() * 0.2;
-  }
-  // 20% 概率：随机颤音（忽快忽慢，模拟信号干扰）
-  else {
+  } else {
     s.playbackRate = 0.7;
-    // 播放过程中随机改变速度，制造"抽搐"感
     const glitchInterval = setInterval(() => {
-      if (s.paused) {
-        clearInterval(glitchInterval);
-        return;
-      }
+      if (s.paused) { clearInterval(glitchInterval); return; }
       s.playbackRate = Math.random() > 0.5 ? 1.5 : 0.5;
     }, 50);
-    // 音效结束后清除定时器
     s.onended = () => clearInterval(glitchInterval);
   }
-
   s.play().catch(() => {});
 }
 
@@ -185,25 +174,23 @@ poop.onclick = async () => {
   if (!canClick && isHorrorMode) return;
 
   poop.classList.add('shake');
-  setTimeout(() => poop.classList.remove('shake'), 200);
+  setTimeout(()=>poop.classList.remove('shake'), 200);
 
   if (isHorrorMode) {
     if (firstClickInHorror) {
       firstClickInHorror = false;
       isPlayingVideo = true;
-
       fullVideo.src = vid2.src;
       fullVideo.muted = false;
       fullVideo.volume = 1;
-      fullVideo.loop = false; // 强制不循环
+      fullVideo.loop = false;
       fullVideo.style.display = 'block';
       fullVideo.play().catch(()=>{});
-
       fullVideo.onended = () => {
         fullVideo.style.display = 'none';
         isPlayingVideo = false;
         body.classList.add('flash');
-        tip.innerText = "还是要玩原神吗..";
+        tip.innerText = "还剩 10 次";
       };
       return;
     }
@@ -220,7 +207,19 @@ poop.onclick = async () => {
     showWarning();
 
     clickCount++;
-    tip.innerText = `已点 ${clickCount} 次`;
+    let remain = NEED - clickCount;
+
+    // ———————————————————— 倒计时显示 ————————————————————
+    if(remain > 0){
+      tip.innerText = "还剩 " + remain + " 次";
+    } else {
+      tip.innerText = "结束了...";
+    }
+
+    // ———————————————————— 最后一次：血腥抽搐闪烁 ————————————————————
+    if(remain === 1){
+      body.classList.add("final_glitch");
+    }
 
     if (clickCount === 5) {
       isPlayingVideo = true;
@@ -235,8 +234,6 @@ poop.onclick = async () => {
     }
 
     if (clickCount >= NEED) {
-      body.style.animation = "flash 0.06s infinite alternate";
-      tip.innerText = "结束了...";
       clickCount = 999;
     }
 
@@ -250,7 +247,6 @@ poop.onclick = async () => {
     tip.innerText = `再点 ${left} 下有惊喜！`;
     return;
   }
-
   tip.innerText = "🎉 惊喜来了！";
   clickCount = 0;
   window.open("https://ys.mihoyo.com/", "_blank");
