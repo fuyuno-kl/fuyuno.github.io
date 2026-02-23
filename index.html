@@ -1,82 +1,121 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>惊喜页面</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
-            font-family: 'Comic Sans MS', '微软雅黑', cursive, sans-serif;
-            overflow: hidden;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>惊喜页面</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+      font-family: 'Comic Sans MS', '微软雅黑', cursive, sans-serif;
+      overflow: hidden;
+    }
 
-        h1 {
-            font-size: 4rem;
-            color: #8B4513;
-            text-shadow: 3px 3px 0 #fff, 6px 6px 0 rgba(0,0,0,0.2);
-            animation: bounce 1s infinite alternate;
-            margin-bottom: 2rem;
-        }
+    h1 {
+      font-size: 4rem;
+      color: #8B4513;
+      text-shadow: 3px 3px 0 #fff, 6px 6px 0 rgba(0,0,0,0.2);
+      animation: bounce 1s infinite alternate;
+      margin-bottom: 2rem;
+    }
 
-        .emoji {
-            font-size: 8rem;
-            animation: rotate 3s linear infinite;
-            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
-        }
+    .emoji {
+      font-size: 8rem;
+      animation: rotate 3s linear infinite;
+      filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
 
-        @keyframes bounce {
-            from { transform: translateY(0); }
-            to { transform: translateY(-20px); }
-        }
+    .emoji:hover {
+      transform: scale(1.2);
+    }
 
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-20px); }
+    }
 
-        .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: #ff6b6b;
-            opacity: 0.7;
-            animation: fall 3s linear infinite;
-        }
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
 
-        @keyframes fall {
-            to {
-                transform: translateY(100vh) rotate(360deg);
-            }
-        }
-    </style>
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #ff6b6b;
+      opacity: 0.7;
+      animation: fall 3s linear infinite;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(100vh) rotate(360deg);
+      }
+    }
+
+    .easter-egg {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 2rem 4rem;
+      border-radius: 20px;
+      font-size: 2rem;
+      transition: transform 0.5s;
+      z-index: 999;
+    }
+
+    .easter-egg.show {
+      transform: translate(-50%, -50%) scale(1);
+    }
+  </style>
 </head>
 <body>
-    <h1>恭喜你找到了大便💩</h1>
-    <div class="emoji">💩</div>
+  <h1>恭喜你找到了大便💩</h1>
+  <div class="emoji" id="poop">💩</div>
+  <div class="easter-egg" id="egg">你点你ma呢💩！</div>
 
-    <script>
-        // 生成彩色纸屑效果
-        function createConfetti() {
-            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7'];
-            for (let i = 0; i < 50; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                document.body.appendChild(confetti);
-                setTimeout(() => confetti.remove(), 3000);
-            }
-        }
-        setInterval(createConfetti, 500);
-    </script>
+  <!-- 引入你的音频文件 a.mp3 -->
+  <audio id="poopSound" src="a.mp3">
+
+  <script>
+    // 生成彩色纸屑效果
+    function createConfetti() {
+      const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7'];
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 3000);
+      }
+    }
+    setInterval(createConfetti, 500);
+
+    // 点击💩弹出彩蛋并播放音效
+    const poop = document.getElementById('poop');
+    const egg = document.getElementById('egg');
+    const sound = document.getElementById('poopSound');
+
+    poop.addEventListener('click', () => {
+      sound.play(); // 播放你的音频
+      egg.classList.add('show');
+      setTimeout(() => egg.classList.remove('show'), 2000);
+    });
+  </script>
 </body>
 </html>
