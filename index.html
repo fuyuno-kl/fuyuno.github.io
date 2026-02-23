@@ -10,17 +10,15 @@ body{
   min-height:100vh;display:flex;flex-direction:column;
   justify-content:center;align-items:center;
   background:#000;font-family:Arial,sans-serif;
-  overflow:hidden;
-  overscroll-behavior:none;
+  overflow:hidden;overscroll-behavior:none;
 }
 body.normal{
   background:linear-gradient(135deg,#ff9a9e 0%,#fecfef 50%,#fecfef 100%);
 }
 body.horror{background:#000}
 body.flash{animation:flash 0.12s infinite alternate}
-@keyframes flash{
-  0%{background:#000}100%{background:#1a0000}
-}
+@keyframes flash{0%{background:#000}100%{background:#1a0000}}
+
 h1{
   font-size:4rem;color:#8B4513;
   text-shadow:3px 3px 0 #fff,6px 6px 0 rgba(0,0,0,0.2);
@@ -32,6 +30,7 @@ body.horror h1{
 }
 @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-20px)}}
 @keyframes horrorBounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+
 .emoji{
   font-size:8rem;animation:rotate 3s linear infinite;
   filter:drop-shadow(0 10px 10px rgba(0,0,0,0.3));
@@ -42,6 +41,7 @@ body.horror .emoji{
   animation:rotate 1.8s linear infinite
 }
 @keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
 @keyframes shake{
   0%{transform:rotate(0deg) translate(0,0)}
   20%{transform:rotate(-2deg) translate(-2px,2px)}
@@ -51,6 +51,7 @@ body.horror .emoji{
   100%{transform:rotate(0deg) translate(0,0)}
 }
 .emoji.shake{animation:shake 0.2s ease}
+
 #tip{
   margin-top:20px;font-size:22px;color:#fff;
   background:rgba(0,0,0,0.3);padding:10px 20px;border-radius:16px
@@ -66,14 +67,9 @@ body.horror #tip{
 }
 
 .warning{
-  position:fixed;
-  color:#ff0000;
-  font-size:32px;
-  font-weight:bold;
-  text-shadow:0 0 12px red;
-  z-index:100;
-  animation:warnFlash 0.2s 3;
-  pointer-events:none;
+  position:fixed;color:#ff0000;font-size:32px;font-weight:bold;
+  text-shadow:0 0 12px red;z-index:100;
+  animation:warnFlash 0.2s 3;pointer-events:none;
 }
 @keyframes warnFlash{
   0%{opacity:0;transform:scale(0.8)}
@@ -88,20 +84,14 @@ body.horror #tip{
 <div class="emoji" id="poop">💩</div>
 <div id="tip">再点 10 下有惊喜！</div>
 
-<video
-  id="fullVideo"
-  preload="auto"
-  controlslist="nodownload noremoteplayback"
-  disablepictureinpicture
-  disableremoteplayback
-  playsinline
-  webkit-playsinline
-></video>
+<!-- 全屏视频 -->
+<video id="fullVideo" playsinline webkit-playsinline muted loop controlslist="nodownload" disablepictureinpicture disableremoteplayback></video>
 
-<audio id="audio_a" preload="auto" src="a.mp3">
-<audio id="audio_b" preload="auto" src="b.mp3">
-<video id="video_2" preload="auto" src="2.mp4" style="display:none;"></video>
-<video id="video_3" preload="auto" src="3.mp4" style="display:none;"></video>
+<!-- 预加载所有媒体（页面刚进来就缓存） -->
+<video id="vid_2" src="2.mp4" preload="auto" style="display:none;"></video>
+<video id="vid_3" src="3.mp4" preload="auto" style="display:none;"></video>
+<audio id="aud_a" src="a.mp3" preload="auto">
+<audio id="aud_b" src="b.mp3" preload="auto">
 
 <script>
 const isHorrorMode = Math.random() < 0.3;
@@ -110,121 +100,143 @@ const poop = document.getElementById('poop');
 const tip = document.getElementById('tip');
 const fullVideo = document.getElementById('fullVideo');
 
-const audioA = document.getElementById('audio_a');
-const audioB = document.getElementById('audio_b');
-const video2 = document.getElementById('video_2');
-const video3 = document.getElementById('video_3');
+// 缓存对象
+const vid2 = document.getElementById('vid_2');
+const vid3 = document.getElementById('vid_3');
+const audA = document.getElementById('aud_a');
+const audB = document.getElementById('aud_b');
 
 let clickCount = 0;
 const NEED = 10;
 let canClick = true;
 let isPlayingVideo = false;
+let firstClickInHorror = true;
 
-const MAX_SOUND = 5;
-let playingSounds = [];
+// =============================================
+// 页面一打开就强制缓存所有音视频 → 零延迟
+// =============================================
+window.addEventListener('load', () => {
+  vid2.load();
+  vid3.load();
+  audA.load();
+  audB.load();
 
-function playFunnySound() {
-  const s = audioA.cloneNode(true);
+  if (isHorrorMode) {
+    body.classList.remove('normal');
+    body.classList.add('horror');
+    tip.innerText = "不可以玩原神";
+  }
+});
+
+// 显示警告文字
+function showWarning() {
+  const el = document.createElement('div');
+  el.className = 'warning';
+  el.innerText = '不要玩原神';
+  el.style.left = 10 + Math.random()*80 + 'vw';
+  el.style.top = 10 + Math.random()*80 + 'vh';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+// 播放恐怖音效（随机音调）
+function playBSound() {
+  const s = audB.cloneNode(true);
+  s.volume = 1;
+  s.playbackRate = 0.6 + Math.random()*0.7;
+  s.play().catch(()=>{});
+}
+
+// 播放搞笑音效
+function playASound() {
+  const s = audA.cloneNode(true);
   s.volume = 0.5;
   s.play().catch(()=>{});
 }
 
-function showWarning(){
-  const el = document.createElement('div');
-  el.className = 'warning';
-  el.innerText = '不要玩原神';
-  el.style.left = (10 + Math.random()*80)+'vw';
-  el.style.top = (10 + Math.random()*80)+'vh';
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(), 1000);
-}
-
-// 页面一加载就预加载全部媒体
-window.addEventListener('load', () => {
-  video2.load();
-  video3.load();
-  audioA.load();
-  audioB.load();
-});
-
-if (isHorrorMode) {
-  body.classList.remove('normal');
-  body.classList.add('horror');
-  tip.innerText = "正在加载...";
-
-  fullVideo.src = "2.mp4";
-  fullVideo.style.display = "block";
-  fullVideo.muted = false;
-  fullVideo.volume = 1;
-  fullVideo.controls = false;
-  isPlayingVideo = true;
-
-  fullVideo.play().catch(()=>{});
-  fullVideo.onended = () => {
-    fullVideo.style.display = "none";
-    isPlayingVideo = false;
-    body.classList.add('flash');
-    tip.innerText = "原神不牛逼";
-  };
-}
-
+// =============================================
+// 点击 💩
+// =============================================
 poop.onclick = async () => {
   if (isPlayingVideo) return;
-  if (!canClick) return;
+  if (!canClick && isHorrorMode) return;
 
   poop.classList.add('shake');
-  setTimeout(()=>poop.classList.remove('shake'), 200);
+  setTimeout(() => poop.classList.remove('shake'), 200);
 
+  // -------------------- 恐怖模式 --------------------
   if (isHorrorMode) {
+    // 第一次点击 → 播放2.mp4
+    if (firstClickInHorror) {
+      firstClickInHorror = false;
+      isPlayingVideo = true;
+
+      fullVideo.src = vid2.src;
+      fullVideo.muted = false;
+      fullVideo.volume = 1;
+      fullVideo.style.display = 'block';
+      fullVideo.play().catch(()=>{});
+
+      fullVideo.onended = () => {
+        fullVideo.style.display = 'none';
+        isPlayingVideo = false;
+        body.classList.add('flash');
+        tip.innerText = "还是要玩原神吗..";
+      };
+      return;
+    }
+
+    // 已经点满，再点跳转鸣潮
     if (clickCount >= 999) {
       window.open("https://mc.kurogames.com/m/", "_blank");
       return;
     }
 
+    // 3秒冷却
     canClick = false;
-    setTimeout(() => { canClick = true; }, 3000);
+    setTimeout(() => canClick = true, 3000);
 
-    const snd = audioB.cloneNode(true);
-    snd.volume = 1.0;
-    snd.playbackRate = 0.6 + Math.random() * 0.7;
-    snd.play().catch(()=>{});
+    playBSound();
     showWarning();
 
     clickCount++;
     tip.innerText = `已点 ${clickCount} 次`;
 
+    // 第5下播放3.mp4
     if (clickCount === 5) {
       isPlayingVideo = true;
-      fullVideo.src = "3.mp4";
-      fullVideo.controls = false;
-      fullVideo.style.display = "block";
+      fullVideo.src = vid3.src;
+      fullVideo.style.display = 'block';
       fullVideo.play().catch(()=>{});
       fullVideo.onended = () => {
-        fullVideo.style.display = "none";
+        fullVideo.style.display = 'none';
         isPlayingVideo = false;
       };
     }
 
+    // 点满10下 → 恐怖拉满
     if (clickCount >= NEED) {
       body.style.animation = "flash 0.06s infinite alternate";
-      tip.innerText = "还是要玩原神吗.";
+      tip.innerText = "结束了...";
       clickCount = 999;
     }
+
     return;
   }
 
-  playFunnySound();
+  // -------------------- 正常模式 --------------------
+  playASound();
   const left = NEED - clickCount;
   if (left > 0) {
     clickCount++;
-    tip.innerText = `再点 ${NEED-clickCount} 下有惊喜！`;
+    tip.innerText = `再点 ${left} 下有惊喜！`;
     return;
   }
 
   tip.innerText = "🎉 惊喜来了！";
   clickCount = 0;
   window.open("https://ys.mihoyo.com/", "_blank");
-  setTimeout(()=>{
+  setTimeout(() => {
     tip.innerText = "再点 10 下有惊喜！";
   }, 1000);
 };
