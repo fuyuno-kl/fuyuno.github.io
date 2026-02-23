@@ -126,10 +126,8 @@ body.horror #tip{
 
 <video id="fullVideo" playsinline webkit-playsinline controlslist="nodownload" disablepictureinpicture disableremoteplayback></video>
 
-<video id="vid_2" src="2.mp4" preload="auto" style="display:none;"></video>
-<video id="vid_3" src="3.mp4" preload="auto" style="display:none;"></video>
-<audio id="aud_a" src="a.mp3" preload="auto">
-<audio id="aud_b" src="b.mp3" preload="auto">
+<audio id="a_sound" src="a.mp3" preload="auto">
+<audio id="b_sound" src="b.mp3" preload="auto">
 <audio id="ambience" src="ambient.mp3" loop preload="auto">
 
 <script>
@@ -138,10 +136,10 @@ const body = document.body;
 const poop = document.getElementById('poop');
 const tip = document.getElementById('tip');
 const fullVideo = document.getElementById('fullVideo');
-const ambient = document.getElementById('ambience');
 
-const vid2 = document.getElementById('vid_2');
-const vid3 = document.getElementById('vid_3');
+const aSound = document.getElementById('a_sound');
+const bSound = document.getElementById('b_sound');
+const ambient = document.getElementById('ambience');
 
 let clickCount = 0;
 const NEED = 10;
@@ -167,46 +165,37 @@ function showWarning() {
   setTimeout(() => el.remove(), 1000);
 }
 
-// ——————————————————————————————————
-// 修复：恐怖音效 b.mp3
-// ——————————————————————————————————
-function playBSound() {
-  try {
-    let s = new Audio("b.mp3");
-    s.volume = 1;
-    const rand = Math.random();
-    if (rand < 0.4) {
-      s.playbackRate = 0.9 + Math.random()*0.2;
-    } else if (rand < 0.6) {
-      s.playbackRate = 1.8 + Math.random()*0.5;
-    } else if (rand < 0.8) {
-      s.playbackRate = 0.4 + Math.random()*0.2;
-    } else {
-      s.playbackRate = 0.7;
-      let gi = setInterval(() => {
-        if (s.paused) { clearInterval(gi); return; }
-        s.playbackRate = Math.random() > 0.5 ? 1.5 : 0.5;
-      }, 50);
-      s.onended = () => clearInterval(gi);
-    }
-    s.play();
-  } catch(e) {}
-}
-
-// ——————————————————————————————————
-// 修复：正常搞笑音效 a.mp3
-// ——————————————————————————————————
+// 播放搞笑音频
 function playASound() {
-  try {
-    let s = new Audio("a.mp3");
-    s.volume = 0.5;
-    s.play();
-  } catch(e) {}
+  aSound.currentTime = 0;
+  aSound.volume = 0.5;
+  aSound.play();
 }
 
-// ——————————————————————————————————
-// 点击逻辑（完全不动你的效果）
-// ——————————————————————————————————
+// 播放恐怖音频（带随机畸变）
+function playBSound() {
+  let s = bSound.cloneNode(true);
+  s.volume = 1;
+  const rand = Math.random();
+  if (rand < 0.4) {
+    s.playbackRate = 0.9 + Math.random()*0.2;
+  } else if (rand < 0.6) {
+    s.playbackRate = 1.8 + Math.random()*0.5;
+  } else if (rand < 0.8) {
+    s.playbackRate = 0.4 + Math.random()*0.2;
+  } else {
+    s.playbackRate = 0.7;
+    const gi = setInterval(() => {
+      if (s.paused) { clearInterval(gi); return; }
+      s.playbackRate = Math.random() > 0.5 ? 1.5 : 0.5;
+    }, 50);
+    s.onended = () => clearInterval(gi);
+  }
+  s.currentTime = 0;
+  s.play();
+}
+
+// 点击逻辑
 poop.onclick = async () => {
   if (isPlayingVideo) return;
   if (!canClick && isHorrorMode) return;
@@ -219,11 +208,10 @@ poop.onclick = async () => {
       firstClickInHorror = false;
       isPlayingVideo = true;
 
-      // 底噪
-      try {
-        ambient.volume = 0.25;
-        ambient.play();
-      } catch(e){}
+      // 启动底噪
+      ambient.volume = 0.25;
+      ambient.currentTime = 0;
+      ambient.play();
 
       fullVideo.src = "2.mp4";
       fullVideo.muted = false;
@@ -250,7 +238,6 @@ poop.onclick = async () => {
     canClick = false;
     setTimeout(() => canClick = true, 3000);
 
-    // ———— 这里保证一定触发 ————
     playBSound();
     showWarning();
 
