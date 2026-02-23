@@ -2,12 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<!-- VIA核心适配：简化视口，关闭所有缩放相关 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimal-ui">
 <meta name="format-detection" content="telephone=no">
 <title>世界上最忧郁的网站</title>
 <style>
-/* 全局重置：VIA适配，去掉复杂属性，用最基础CSS */
 *{margin:0;padding:0;box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
 body{
   height: 100vh;
@@ -22,14 +20,12 @@ body{
   margin:0;
   padding:0;
 }
-/* 模式背景：简化渐变，VIA兼容 */
 body.normal{
   background: -webkit-linear-gradient(135deg,#ff9a9e,#fecfef);
   background: linear-gradient(135deg,#ff9a9e,#fecfef);
 }
 body.horror{background:#000 !important;}
 
-/* 闪烁动画：简化，VIA不卡 */
 body.flash{animation:flash 0.12s infinite alternate;}
 @keyframes flash{0%{background:#000;}100%{background:#1a0000;}}
 body.final_glitch {
@@ -41,7 +37,6 @@ body.final_glitch {
   100%{background:#000;}
 }
 
-/* 标题：VIA适配字体大小，固定行高，不溢出 */
 h1{
   font-size: 28px;
   color:#8B4513;
@@ -60,7 +55,6 @@ body.horror h1{
 @keyframes bounce{from{transform:translateY(0);}to{transform:translateY(-10px);}}
 @keyframes horrorBounce{from{transform:translateY(0);}to{transform:translateY(-5px);}}
 
-/* 大便核心：VIA专属点击优化，扩大点击区，层级拉满 */
 .emoji{
   font-size: 80px;
   animation:rotate 3s linear infinite;
@@ -69,19 +63,16 @@ body.horror h1{
   display:block;
   position:relative;
   z-index: 9999;
-  /* VIA关键：扩大点击热区，上下左右各加30px */
   padding:30px;
   touch-action: none;
   user-select: none;
 }
 body.horror .emoji{
-  /* VIA兼容滤镜：简化，避免失效 */
   filter:brightness(0.1) sepia(1) saturate(10);
   animation:rotate 1.8s linear infinite;
 }
 @keyframes rotate{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 
-/* 抖动动画：VIA适配，简化变换 */
 @keyframes shake{
   0%{transform:rotate(0deg);}
   20%{transform:rotate(-2deg);}
@@ -92,7 +83,6 @@ body.horror .emoji{
 }
 .emoji.shake{animation:shake 0.2s ease;}
 
-/* 提示文字：VIA置顶不遮挡，样式简化，适配小屏 */
 #tip{
   font-size: 18px;
   color:#fff;
@@ -111,7 +101,6 @@ body.horror #tip{
   text-shadow:0 0 6px red;
 }
 
-/* VIA专属视频：纯全屏无黑边，内核级兼容，去掉多余属性 */
 #fullVideo{
   position:fixed;
   top:0;
@@ -124,11 +113,8 @@ body.horror #tip{
   background:#000 !important;
   border:0;
   outline:0;
-  /* VIA关键：强制层级，避免被遮挡 */
-  position: absolute;
 }
 
-/* 警告文字：VIA终极置顶，永不遮挡 */
 .warning{
   position:fixed;
   color:#ff0000;
@@ -153,10 +139,9 @@ body.horror #tip{
 <div class="emoji" id="poop">💩</div>
 <div id="tip">再点 10 下有惊喜！</div>
 
-<!-- VIA兼容视频：只保留核心属性，去掉VIA不识别的 -->
-<video id="fullVideo" playsinline webkit-playsinline></video>
+<!-- VIA视频终极修复：先静音，再手动恢复音量，解决播放卡死 -->
+<video id="fullVideo" playsinline webkit-playsinline muted></video>
 
-<!-- 音频：VIA适配，去掉preload，避免加载阻塞 -->
 <audio id="aSound" src="a.mp3">
 <audio id="bSound" src="b.mp3">
 <audio id="ambientSound" src="ambient.mp3" loop>
@@ -164,27 +149,22 @@ body.horror #tip{
 <video id="video3" src="3.mp4" style="display:none;"></video>
 
 <script>
-// 关闭所有控制台报错，避免VIA内核阻塞
 console.log = function(){};
 console.error = function(){};
 
-// 核心模式判定
 const IS_HORROR_MODE = Math.random() < 0.3;
 
-// DOM元素：VIA适配，提前获取，避免重复查询
 const body = document.body;
 const poop = document.getElementById('poop');
 const tip = document.getElementById('tip');
 const fullVideo = document.getElementById('fullVideo');
 
-// 媒体资源：简化对象，VIA兼容
 const aSound = document.getElementById('aSound');
 const bSound = document.getElementById('bSound');
 const ambientSound = document.getElementById('ambientSound');
 const video2 = document.getElementById('video2');
 const video3 = document.getElementById('video3');
 
-// 状态管理：简化变量，VIA不支持复杂嵌套深拷贝
 let videoPlaying = false;
 let normalCount = 0, normalCanClick = true;
 let horrorCount = 0, horrorCanClick = true, horrorFirstClick = true;
@@ -192,7 +172,6 @@ const NEED_CLICK = 10;
 const NORMAL_INTERVAL = 1000;
 const HORROR_INTERVAL = 3000;
 
-// 页面初始化：VIA适配，用onload替代addEventListener，更稳定
 window.onload = function() {
   if(IS_HORROR_MODE){
     body.className = 'horror';
@@ -201,46 +180,37 @@ window.onload = function() {
     body.className = 'normal';
     tip.innerText = "再点 10 下有惊喜！";
   }
-  // VIA关键：首次触摸/点击解锁音频，解决自动播放拦截
   document.addEventListener('touchstart', unlockAudio, { once: true });
   document.addEventListener('click', unlockAudio, { once: true });
 };
 
-// 音频解锁：VIA专属，极简写法，100%解锁
 function unlockAudio() {
   aSound.play().then(()=>aSound.pause());
   ambientSound.play().then(()=>ambientSound.pause());
   bSound.play().then(()=>bSound.pause());
 }
 
-// 正常模式：VIA适配，简化逻辑，去掉多余判断
 function normalClick() {
   if(!normalCanClick) return;
-  // 抖动效果
   poop.classList.add('shake');
   setTimeout(()=>poop.classList.remove('shake'),200);
-  // 播放音效：VIA专属，重置播放位置+强制播放
   aSound.currentTime = 0;
   aSound.volume = 0.5;
   aSound.play();
-  // 防连点
   normalCanClick = false;
   setTimeout(()=>normalCanClick = true, NORMAL_INTERVAL);
-  // 计数更新
   normalCount++;
   const remain = NEED_CLICK - normalCount;
   if(remain > 0){
     tip.innerText = `再点 ${remain} 下有惊喜！`;
     return;
   }
-  // 跳转重置
   tip.innerText = "🎉 惊喜来了！";
   normalCount = 0;
   window.open("https://ys.mihoyo.com/", "_blank");
   setTimeout(()=>tip.innerText = "再点 10 下有惊喜！",1000);
 }
 
-// 显示警告文字：极简写法，VIA不卡
 function showWarning() {
   const el = document.createElement('div');
   el.className = 'warning';
@@ -251,13 +221,10 @@ function showWarning() {
   setTimeout(()=>el.remove(),1000);
 }
 
-// 恐怖音效：VIA终极修复，双方案兜底（原节点+新建实例），100%播放
 function playHorrorSound() {
   try {
-    // 方案1：新建Audio，VIA最兼容
     const audio = new Audio('b.mp3');
     audio.volume = 1;
-    // 保留畸变效果，简化逻辑
     const rand = Math.random();
     if(rand<0.4) audio.playbackRate = 1.0;
     else if(rand<0.6) audio.playbackRate = 1.8;
@@ -271,37 +238,39 @@ function playHorrorSound() {
       audio.onended = ()=>clearInterval(gi);
     }
     audio.play();
-    // 方案2：原节点兜底，防止新建失败
     bSound.currentTime = 0;
     bSound.volume = 1;
     bSound.play();
   } catch(e) {
-    // 兜底中的兜底，直接播放原节点
     bSound.currentTime = 0;
     bSound.play();
   }
 }
 
-// 恐怖模式：VIA适配，拆分为简单逻辑，避免嵌套过深导致阻塞
 function horrorClick() {
   if(videoPlaying || !horrorCanClick) return;
-  // 抖动效果
   poop.classList.add('shake');
   setTimeout(()=>poop.classList.remove('shake'),200);
 
-  // 第一次点击：视频2+底噪
   if(horrorFirstClick) {
     horrorFirstClick = false;
     videoPlaying = true;
-    // 底噪播放：VIA专属，强制重置
+
     ambientSound.currentTime = 0;
     ambientSound.volume = 0.25;
     ambientSound.play();
-    // 视频播放：VIA终极全屏，简化赋值
+
+    // VIA视频核心修复：先静音播放，再恢复音量，解决卡死
     fullVideo.src = video2.src;
     fullVideo.style.display = 'block';
+    fullVideo.muted = true; // 先静音，VIA必能播放
     fullVideo.play();
-    // 视频结束回调：极简写法
+    // 播放后100ms恢复音量，避免卡死
+    setTimeout(() => {
+      fullVideo.muted = false;
+      fullVideo.volume = 1;
+    }, 100);
+
     fullVideo.onended = function() {
       fullVideo.style.display = 'none';
       videoPlaying = false;
@@ -311,35 +280,35 @@ function horrorClick() {
     return;
   }
 
-  // 点满10次：跳转+停止底噪
   if(horrorCount >= NEED_CLICK) {
     ambientSound.pause();
     window.open("https://mc.kurogames.com/m/", "_blank");
     return;
   }
 
-  // 防连点
   horrorCanClick = false;
   setTimeout(()=>horrorCanClick = true, HORROR_INTERVAL);
 
-  // 播放音效+显示警告
   playHorrorSound();
   showWarning();
 
-  // 计数更新
   horrorCount++;
   const remain = NEED_CLICK - horrorCount;
   tip.innerText = remain>0 ? `还剩 ${remain} 次` : "结束了...";
 
-  // 最后1次闪烁
   if(remain === 1) body.classList.add('final_glitch');
 
-  // 第5次点击：视频3
   if(horrorCount === 5) {
     videoPlaying = true;
+    // 视频3同样修复
     fullVideo.src = video3.src;
     fullVideo.style.display = 'block';
+    fullVideo.muted = true;
     fullVideo.play();
+    setTimeout(() => {
+      fullVideo.muted = false;
+      fullVideo.volume = 1;
+    }, 100);
     fullVideo.onended = function() {
       fullVideo.style.display = 'none';
       videoPlaying = false;
@@ -347,13 +316,10 @@ function horrorClick() {
   }
 }
 
-// VIA终极点击绑定：双事件（click+touchstart），无冲突，100%触发
-// 先绑定touchstart，适配VIA移动端触摸优先
 poop.ontouchstart = function(e) {
-  e.preventDefault(); // 阻止VIA默认触摸行为（如缩放、滚动）
+  e.preventDefault();
   IS_HORROR_MODE ? horrorClick() : normalClick();
 };
-// 再绑定click，兜底电脑/VIA点击
 poop.onclick = function() {
   IS_HORROR_MODE ? horrorClick() : normalClick();
 };
