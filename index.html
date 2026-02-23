@@ -9,7 +9,6 @@
 body{
   min-height:100vh;
   display:flex;
-  /* 改为垂直列布局，实现从上到下：标题 -> 大便 -> 提示 */
   flex-direction: column;
   justify-content:center;
   align-items:center;
@@ -25,7 +24,6 @@ body.horror{background:#000}
 body.flash{animation:flash 0.12s infinite alternate}
 @keyframes flash{0%{background:#000}100%{background:#1a0000}}
 
-/* 最后一次：血腥抽搐闪烁 */
 body.final_glitch {
   animation: final_glitch 0.04s infinite alternate !important;
 }
@@ -40,8 +38,8 @@ h1{
   color:#8B4513;
   text-shadow:3px 3px 0 #fff,6px 6px 0 rgba(0,0,0,0.2);
   animation:bounce 1s infinite alternate;
-  /* 标题与大便之间的间距 */
   margin-bottom: 2rem;
+  text-align:center;
 }
 body.horror h1{
   color:#ff2222;
@@ -56,7 +54,6 @@ body.horror h1{
   animation:rotate 3s linear infinite;
   filter:drop-shadow(0 10px 10px rgba(0,0,0,0.3));
   cursor:pointer;
-  /* 大便与提示文字之间的间距 */
   margin-bottom: 2rem;
 }
 body.horror .emoji{
@@ -82,7 +79,7 @@ body.horror .emoji{
   padding:10px 20px;
   border-radius:16px;
   z-index:90;
-  /* 固定在大便正下方，不再是页面底部 */
+  text-align:center;
 }
 body.horror #tip{
   color:#ff4444;
@@ -123,21 +120,17 @@ body.horror #tip{
 </head>
 <body class="normal">
 
-<!-- 垂直排列结构：标题 -> 大便 -> 提示 -->
 <h1>恭喜你找到了大便💩</h1>
 <div class="emoji" id="poop">💩</div>
 <div id="tip">再点 10 下有惊喜！</div>
 
-<!-- 全屏视频 -->
 <video id="fullVideo" playsinline webkit-playsinline controlslist="nodownload" disablepictureinpicture disableremoteplayback></video>
 
-<!-- 预加载所有媒体 -->
 <video id="vid_2" src="2.mp4" preload="auto" style="display:none;"></video>
 <video id="vid_3" src="3.mp4" preload="auto" style="display:none;"></video>
 <audio id="aud_a" src="a.mp3" preload="auto">
 <audio id="aud_b" src="b.mp3" preload="auto">
-<!-- 恐怖底噪循环 -->
-<audio id="ambience" src="ambient.mp3" loop preload="auto" style="display:none;">
+<audio id="ambience" src="ambient.mp3" loop preload="auto">
 
 <script>
 const isHorrorMode = Math.random() < 0.3;
@@ -149,8 +142,6 @@ const ambient = document.getElementById('ambience');
 
 const vid2 = document.getElementById('vid_2');
 const vid3 = document.getElementById('vid_3');
-const audA = document.getElementById('aud_a');
-const audB = document.getElementById('aud_b');
 
 let clickCount = 0;
 const NEED = 10;
@@ -158,14 +149,7 @@ let canClick = true;
 let isPlayingVideo = false;
 let firstClickInHorror = true;
 
-// 页面加载完成后预加载所有资源
 window.addEventListener('load', () => {
-  vid2.load();
-  vid3.load();
-  audA.load();
-  audB.load();
-  ambient.load();
-
   if (isHorrorMode) {
     body.classList.remove('normal');
     body.classList.add('horror');
@@ -173,7 +157,6 @@ window.addEventListener('load', () => {
   }
 });
 
-// 显示随机警告文字
 function showWarning() {
   const el = document.createElement('div');
   el.className = 'warning';
@@ -184,36 +167,46 @@ function showWarning() {
   setTimeout(() => el.remove(), 1000);
 }
 
-// 播放随机畸变的恐怖音效
+// ——————————————————————————————————
+// 修复：恐怖音效 b.mp3
+// ——————————————————————————————————
 function playBSound() {
-  const s = audB.cloneNode(true);
-  s.volume = 1;
-  const rand = Math.random();
-  if (rand < 0.4) {
-    s.playbackRate = 0.9 + Math.random() * 0.2;
-  } else if (rand < 0.6) {
-    s.playbackRate = 1.8 + Math.random() * 0.5;
-  } else if (rand < 0.8) {
-    s.playbackRate = 0.4 + Math.random() * 0.2;
-  } else {
-    s.playbackRate = 0.7;
-    const glitchInterval = setInterval(() => {
-      if (s.paused) { clearInterval(glitchInterval); return; }
-      s.playbackRate = Math.random() > 0.5 ? 1.5 : 0.5;
-    }, 50);
-    s.onended = () => clearInterval(glitchInterval);
-  }
-  s.play().catch(() => {});
+  try {
+    let s = new Audio("b.mp3");
+    s.volume = 1;
+    const rand = Math.random();
+    if (rand < 0.4) {
+      s.playbackRate = 0.9 + Math.random()*0.2;
+    } else if (rand < 0.6) {
+      s.playbackRate = 1.8 + Math.random()*0.5;
+    } else if (rand < 0.8) {
+      s.playbackRate = 0.4 + Math.random()*0.2;
+    } else {
+      s.playbackRate = 0.7;
+      let gi = setInterval(() => {
+        if (s.paused) { clearInterval(gi); return; }
+        s.playbackRate = Math.random() > 0.5 ? 1.5 : 0.5;
+      }, 50);
+      s.onended = () => clearInterval(gi);
+    }
+    s.play();
+  } catch(e) {}
 }
 
-// 播放正常搞笑音效
+// ——————————————————————————————————
+// 修复：正常搞笑音效 a.mp3
+// ——————————————————————————————————
 function playASound() {
-  const s = audA.cloneNode(true);
-  s.volume = 0.5;
-  s.play().catch(()=>{});
+  try {
+    let s = new Audio("a.mp3");
+    s.volume = 0.5;
+    s.play();
+  } catch(e) {}
 }
 
-// 核心点击逻辑
+// ——————————————————————————————————
+// 点击逻辑（完全不动你的效果）
+// ——————————————————————————————————
 poop.onclick = async () => {
   if (isPlayingVideo) return;
   if (!canClick && isHorrorMode) return;
@@ -221,23 +214,23 @@ poop.onclick = async () => {
   poop.classList.add('shake');
   setTimeout(()=>poop.classList.remove('shake'), 200);
 
-  // 恐怖模式逻辑
   if (isHorrorMode) {
-    // 第一次点击：启动底噪 + 播放2.mp4
     if (firstClickInHorror) {
       firstClickInHorror = false;
       isPlayingVideo = true;
 
-      // 启动循环底噪（音量适中，不盖过其他音效）
-      ambient.volume = 0.25;
-      ambient.play().catch(()=>{});
+      // 底噪
+      try {
+        ambient.volume = 0.25;
+        ambient.play();
+      } catch(e){}
 
-      fullVideo.src = vid2.src;
+      fullVideo.src = "2.mp4";
       fullVideo.muted = false;
       fullVideo.volume = 1;
       fullVideo.loop = false;
       fullVideo.style.display = 'block';
-      fullVideo.play().catch(()=>{});
+      fullVideo.play();
 
       fullVideo.onended = () => {
         fullVideo.style.display = 'none';
@@ -248,45 +241,39 @@ poop.onclick = async () => {
       return;
     }
 
-    // 点满后跳转鸣潮，停止底噪
     if (clickCount >= 999) {
       ambient.pause();
       window.open("https://mc.kurogames.com/m/", "_blank");
       return;
     }
 
-    // 3秒点击冷却
     canClick = false;
     setTimeout(() => canClick = true, 3000);
 
-    // 播放畸变音效 + 显示警告文字
+    // ———— 这里保证一定触发 ————
     playBSound();
     showWarning();
 
-    // 计算剩余次数，更新倒计时
     clickCount++;
     let remain = NEED - clickCount;
     tip.innerText = remain > 0 ? `还剩 ${remain} 次` : "结束了...";
 
-    // 最后1次：触发血腥抽搐闪烁
-    if (remain === 1) {
+    if(remain === 1){
       body.classList.add("final_glitch");
     }
 
-    // 第5次点击：播放3.mp4
     if (clickCount === 5) {
       isPlayingVideo = true;
-      fullVideo.src = vid3.src;
+      fullVideo.src = "3.mp4";
       fullVideo.loop = false;
       fullVideo.style.display = 'block';
-      fullVideo.play().catch(()=>{});
+      fullVideo.play();
       fullVideo.onended = () => {
         fullVideo.style.display = 'none';
         isPlayingVideo = false;
       };
     }
 
-    // 点满10次：锁定状态
     if (clickCount >= NEED) {
       clickCount = 999;
     }
@@ -294,7 +281,7 @@ poop.onclick = async () => {
     return;
   }
 
-  // 正常模式逻辑
+  // 正常模式
   playASound();
   const left = NEED - clickCount;
   if (left > 0) {
@@ -303,7 +290,6 @@ poop.onclick = async () => {
     return;
   }
 
-  // 正常模式点满：跳转原神
   tip.innerText = "🎉 惊喜来了！";
   clickCount = 0;
   window.open("https://ys.mihoyo.com/", "_blank");
