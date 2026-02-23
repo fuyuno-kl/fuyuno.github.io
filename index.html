@@ -55,6 +55,10 @@ body.horror h1{
   filter:drop-shadow(0 10px 10px rgba(0,0,0,0.3));
   cursor:pointer;
   margin-bottom: 2rem;
+  /* 关键修复：让点击区域真正可点 */
+  display: block;
+  position: relative;
+  z-index: 1000;
 }
 body.horror .emoji{
   filter:brightness(0.1) sepia(1) saturate(10);
@@ -124,10 +128,8 @@ body.horror #tip{
 <div class="emoji" id="poop">💩</div>
 <div id="tip">再点 10 下有惊喜！</div>
 
-<!-- 全屏视频 -->
 <video id="fullVideo" playsinline webkit-playsinline controlslist="nodownload" disablepictureinpicture disableremoteplayback></video>
 
-<!-- 预加载媒体资源（模式隔离，分别引用） -->
 <audio id="aSound" src="a.mp3" preload="auto">
 <audio id="bSound" src="b.mp3" preload="auto">
 <audio id="ambientSound" src="ambient.mp3" loop preload="auto">
@@ -135,16 +137,13 @@ body.horror #tip{
 <video id="video3" src="3.mp4" preload="auto" style="display:none;"></video>
 
 <script>
-// 核心模式判定（页面加载时固定，永不改变）
 const IS_HORROR_MODE = Math.random() < 0.3;
 
-// DOM 元素获取
 const body = document.body;
 const poop = document.getElementById('poop');
 const tip = document.getElementById('tip');
 const fullVideo = document.getElementById('fullVideo');
 
-// 媒体资源（按模式分类，彻底隔离）
 const normalMedia = {
   aSound: document.getElementById('aSound')
 };
@@ -155,64 +154,51 @@ const horrorMedia = {
   video3: document.getElementById('video3')
 };
 
-// 状态管理（按模式分离，互不干扰）
 const state = {
-  // 通用状态
   isPlayingVideo: false,
-  // 恐怖模式专属状态
   horror: {
     clickCount: 0,
     canClick: true,
     firstClick: true
   },
-  // 正常模式专属状态
   normal: {
     clickCount: 0,
-    canClick: true // 控制1秒间隔
+    canClick: true
   }
 };
 
 const CONST = {
   NEED_CLICK: 10,
-  NORMAL_CLICK_INTERVAL: 1000, // 正常模式1秒间隔
-  HORROR_CLICK_INTERVAL: 3000, // 恐怖模式3秒间隔
+  NORMAL_CLICK_INTERVAL: 1000,
+  HORROR_CLICK_INTERVAL: 3000,
   AMBIENT_VOLUME: 0.25
 };
 
-// 页面初始化（一次性完成，模式隔离）
 window.addEventListener('load', () => {
   if (IS_HORROR_MODE) {
-    // 恐怖模式初始化
     body.classList.remove('normal');
     body.classList.add('horror');
     tip.innerText = "不可以玩原神";
   } else {
-    // 正常模式初始化
     tip.innerText = "再点 10 下有惊喜！";
   }
 });
 
-// -------------------------- 正常模式核心逻辑（独立封装） --------------------------
 function handleNormalClick() {
-  // 防连点：1秒间隔未到则直接返回
   if (!state.normal.canClick) return;
 
-  // 触发点击动画
   poop.classList.add('shake');
   setTimeout(() => poop.classList.remove('shake'), 200);
 
-  // 播放搞笑音效（重置播放位置，确保每次从头播）
   normalMedia.aSound.currentTime = 0;
   normalMedia.aSound.volume = 0.5;
   normalMedia.aSound.play().catch(() => {});
 
-  // 开启1秒点击间隔锁
   state.normal.canClick = false;
   setTimeout(() => {
     state.normal.canClick = true;
   }, CONST.NORMAL_CLICK_INTERVAL);
 
-  // 计数与提示更新
   state.normal.clickCount++;
   const remain = CONST.NEED_CLICK - state.normal.clickCount;
   if (remain > 0) {
@@ -220,7 +206,6 @@ function handleNormalClick() {
     return;
   }
 
-  // 点满10次：跳转+重置
   tip.innerText = "🎉 惊喜来了！";
   state.normal.clickCount = 0;
   window.open("https://ys.mihoyo.com/", "_blank");
@@ -229,7 +214,6 @@ function handleNormalClick() {
   }, 1000);
 }
 
-// -------------------------- 恐怖模式核心逻辑（独立封装） --------------------------
 function showWarning() {
   const el = document.createElement('div');
   el.className = 'warning';
@@ -245,7 +229,6 @@ function playHorrorSound() {
   s.volume = 1;
   const rand = Math.random();
   
-  // 随机畸变效果
   if (rand < 0.4) s.playbackRate = 0.9 + Math.random() * 0.2;
   else if (rand < 0.6) s.playbackRate = 1.8 + Math.random() * 0.5;
   else if (rand < 0.8) s.playbackRate = 0.4 + Math.random() * 0.2;
@@ -266,24 +249,19 @@ function playHorrorSound() {
 }
 
 function handleHorrorClick() {
-  // 视频播放中或冷却中，直接返回
   if (state.isPlayingVideo || !state.horror.canClick) return;
 
-  // 触发点击动画
   poop.classList.add('shake');
   setTimeout(() => poop.classList.remove('shake'), 200);
 
-  // 第一次点击：启动底噪+播放2.mp4（核心初始化）
   if (state.horror.firstClick) {
     state.horror.firstClick = false;
     state.isPlayingVideo = true;
 
-    // 启动底噪（仅第一次触发，永久循环）
     horrorMedia.ambient.volume = CONST.AMBIENT_VOLUME;
     horrorMedia.ambient.currentTime = 0;
     horrorMedia.ambient.play().catch(() => {});
 
-    // 播放2.mp4
     fullVideo.src = horrorMedia.video2.src;
     fullVideo.muted = false;
     fullVideo.volume = 1;
@@ -291,7 +269,6 @@ function handleHorrorClick() {
     fullVideo.style.display = 'block';
     fullVideo.play().catch(() => {});
 
-    // 视频结束回调
     fullVideo.onended = () => {
       fullVideo.style.display = 'none';
       state.isPlayingVideo = false;
@@ -301,34 +278,28 @@ function handleHorrorClick() {
     return;
   }
 
-  // 点满后：停止底噪+跳转鸣潮
   if (state.horror.clickCount >= CONST.NEED_CLICK) {
     horrorMedia.ambient.pause();
     window.open("https://mc.kurogames.com/m/", "_blank");
     return;
   }
 
-  // 开启3秒冷却（恐怖模式专属）
   state.horror.canClick = false;
   setTimeout(() => {
     state.horror.canClick = true;
   }, CONST.HORROR_CLICK_INTERVAL);
 
-  // 播放恐怖音效+显示警告
   playHorrorSound();
   showWarning();
 
-  // 计数更新+倒计时提示
   state.horror.clickCount++;
   const remain = CONST.NEED_CLICK - state.horror.clickCount;
   tip.innerText = remain > 0 ? `还剩 ${remain} 次` : "结束了...";
 
-  // 最后1次：触发血腥抽搐闪烁
   if (remain === 1) {
     body.classList.add("final_glitch");
   }
 
-  // 第5次点击：播放3.mp4
   if (state.horror.clickCount === 5) {
     state.isPlayingVideo = true;
     fullVideo.src = horrorMedia.video3.src;
@@ -342,8 +313,18 @@ function handleHorrorClick() {
   }
 }
 
-// -------------------------- 根点击事件（模式分流，彻底隔离） --------------------------
-poop.onclick = () => {
+// —————— 核心修复：把点击绑死，确保一定触发 ——————
+poop.addEventListener("click", function() {
+  if (IS_HORROR_MODE) {
+    handleHorrorClick();
+  } else {
+    handleNormalClick();
+  }
+});
+
+// 手机端额外再绑一次触摸，确保能点
+poop.ontouchstart = function(e) {
+  e.preventDefault();
   if (IS_HORROR_MODE) {
     handleHorrorClick();
   } else {
