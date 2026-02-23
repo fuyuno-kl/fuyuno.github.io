@@ -121,41 +121,56 @@
   let clickCount = 0;
   const totalNeed = 10;
 
-  poop.addEventListener('click', () => {
+  // 限制最多同时 5 个音效
+  const MAX_SOUND = 5;
+  let playingSounds = [];
+
+  function playSound() {
+    // 清理已结束的音频
+    playingSounds = playingSounds.filter(s => !s.ended);
+    if (playingSounds.length >= MAX_SOUND) return;
+
     const sound = new Audio('a.mp3');
     sound.volume = 0.5;
+    sound.play().catch(() => {});
+    playingSounds.push(sound);
+  }
 
+  poop.addEventListener('click', () => {
     poop.classList.add('shake');
     setTimeout(()=>poop.classList.remove('shake'),200);
 
     clickCount++;
     const left = totalNeed - clickCount;
-    if(left>0) tip.innerText = `再点 ${left} 下有超级惊喜！`;
 
-    if(clickCount >= totalNeed){
-      tip.innerText = "🎉 惊喜来啦！";
-      clickCount = 0;
+    if (left > 0) {
+      tip.innerText = `再点 ${left} 下有超级惊喜！`;
+      playSound();
+      return;
+    }
 
-      // 30% 突脸，70% 原神
-      if(Math.random() < 0.3){
-        jumpVideo.muted = false;
-        jumpVideo.volume = 1.0;
-        jumpVideo.style.display = 'block';
-        jumpVideo.play();
+    // 点满 10 下
+    tip.innerText = "🎉 惊喜来啦！";
+    clickCount = 0;
 
-        jumpVideo.onended = () => {
-          jumpVideo.style.display = 'none';
-          tip.innerText = "再点 10 下有超级惊喜！";
-        };
-      } else {
-        sound.play().catch(()=>{});
-        window.open('https://ys.mihoyo.com/','_blank');
-        setTimeout(()=>{
-          tip.innerText = "再点 10 下有超级惊喜！";
-        },1000);
-      }
+    if (Math.random() < 0.3) {
+      // 突脸：不播搞笑音
+      jumpVideo.muted = false;
+      jumpVideo.volume = 1.0;
+      jumpVideo.style.display = 'block';
+      jumpVideo.play();
+
+      jumpVideo.onended = () => {
+        jumpVideo.style.display = 'none';
+        tip.innerText = "再点 10 下有超级惊喜！";
+      };
     } else {
-      sound.play().catch(()=>{});
+      // 原神：播音效
+      playSound();
+      window.open('https://ys.mihoyo.com/', '_blank');
+      setTimeout(() => {
+        tip.innerText = "再点 10 下有超级惊喜！";
+      }, 1000);
     }
   });
 </script>
