@@ -59,7 +59,8 @@ body.horror #tip{
 }
 #fullVideo{
   position:fixed;top:0;left:0;width:100vw;height:100vh;
-  object-fit:cover;z-index:9999;display:none
+  object-fit:cover;z-index:9999;display:none;
+  background:#000;
 }
 </style>
 </head>
@@ -68,7 +69,7 @@ body.horror #tip{
 <h1>恭喜你找到了大便💩</h1>
 <div class="emoji" id="poop">💩</div>
 <div id="tip">再点 10 下有惊喜！</div>
-<video id="fullVideo"></video>
+<video id="fullVideo" controlslist="nodownload noremoteplayback" disablepictureinpicture></video>
 
 <script>
 const isHorrorMode = Math.random() < 0.3;
@@ -91,6 +92,7 @@ if (isHorrorMode) {
   fullVideo.style.display = "block";
   fullVideo.muted = false;
   fullVideo.volume = 1;
+  fullVideo.controls = false;
   isPlayingVideo = true;
   fullVideo.play().catch(()=>{});
 
@@ -115,11 +117,17 @@ poop.onclick = async () => {
       return;
     }
 
+    // 冷却 3 秒，不用等音频播完
     canClick = false;
-    const snd = new Audio("b.mp3");
-    snd.volume = 1;
-    try { await snd.play(); } catch(e){}
-    snd.onended = () => { canClick = true; };
+    setTimeout(() => { canClick = true; }, 3000);
+
+    // 随机音调：0.6 ~ 1.3 之间随机，时高时低
+    const audio = new Audio("b.mp3");
+    audio.volume = 1;
+    if (audio.playbackRate) {
+      audio.playbackRate = 0.6 + Math.random() * 0.7;
+    }
+    audio.play().catch(()=>{});
 
     clickCount++;
     tip.innerText = `已点 ${clickCount} 次`;
@@ -127,6 +135,7 @@ poop.onclick = async () => {
     if (clickCount === 5) {
       isPlayingVideo = true;
       fullVideo.src = "3.mp4";
+      fullVideo.controls = false;
       fullVideo.style.display = "block";
       fullVideo.play().catch(()=>{});
       fullVideo.onended = () => {
@@ -137,7 +146,7 @@ poop.onclick = async () => {
 
     if (clickCount >= NEED) {
       body.style.animation = "flash 0.06s infinite alternate";
-      tip.innerText = "都让你不要玩原神";
+      tip.innerText = "都说了不要玩原神";
       clickCount = 999;
     }
 
