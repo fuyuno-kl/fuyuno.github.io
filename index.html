@@ -58,13 +58,13 @@ body.horror .emoji{
 body.horror #tip{
   color:#ff4444;background:rgba(20,0,0,0.8);text-shadow:0 0 6px red
 }
+
 #fullVideo{
   position:fixed;top:0;left:0;width:100vw;height:100vh;
   object-fit:cover;z-index:9999;display:none;
   background:#000;border:none;outline:none;
 }
 
-/* 不要玩原神 闪烁文字 */
 .warning{
   position:fixed;
   color:#ff0000;
@@ -90,6 +90,7 @@ body.horror #tip{
 
 <video
   id="fullVideo"
+  preload="auto"
   controlslist="nodownload noremoteplayback"
   disablepictureinpicture
   disableremoteplayback
@@ -97,12 +98,22 @@ body.horror #tip{
   webkit-playsinline
 ></video>
 
+<audio id="audio_a" preload="auto" src="a.mp3">
+<audio id="audio_b" preload="auto" src="b.mp3">
+<video id="video_2" preload="auto" src="2.mp4" style="display:none;"></video>
+<video id="video_3" preload="auto" src="3.mp4" style="display:none;"></video>
+
 <script>
 const isHorrorMode = Math.random() < 0.3;
 const body = document.body;
 const poop = document.getElementById('poop');
 const tip = document.getElementById('tip');
 const fullVideo = document.getElementById('fullVideo');
+
+const audioA = document.getElementById('audio_a');
+const audioB = document.getElementById('audio_b');
+const video2 = document.getElementById('video_2');
+const video3 = document.getElementById('video_3');
 
 let clickCount = 0;
 const NEED = 10;
@@ -113,15 +124,11 @@ const MAX_SOUND = 5;
 let playingSounds = [];
 
 function playFunnySound() {
-  playingSounds = playingSounds.filter(s => !s.ended);
-  if (playingSounds.length >= MAX_SOUND) return;
-  const s = new Audio('a.mp3');
+  const s = audioA.cloneNode(true);
   s.volume = 0.5;
   s.play().catch(()=>{});
-  playingSounds.push(s);
 }
 
-// 随机显示：不要玩原神
 function showWarning(){
   const el = document.createElement('div');
   el.className = 'warning';
@@ -131,6 +138,14 @@ function showWarning(){
   document.body.appendChild(el);
   setTimeout(()=>el.remove(), 1000);
 }
+
+// 页面一加载就预加载全部媒体
+window.addEventListener('load', () => {
+  video2.load();
+  video3.load();
+  audioA.load();
+  audioB.load();
+});
 
 if (isHorrorMode) {
   body.classList.remove('normal');
@@ -149,7 +164,7 @@ if (isHorrorMode) {
     fullVideo.style.display = "none";
     isPlayingVideo = false;
     body.classList.add('flash');
-    tip.innerText = "千万不要玩原神.";
+    tip.innerText = "原神不牛逼";
   };
 }
 
@@ -162,21 +177,18 @@ poop.onclick = async () => {
 
   if (isHorrorMode) {
     if (clickCount >= 999) {
-      window.open("https://www.wutheringwaves.com/", "_blank");
+      window.open("https://mc.kurogames.com/m/", "_blank");
       return;
     }
 
     canClick = false;
     setTimeout(() => { canClick = true; }, 3000);
 
-    // 恐怖音效 + 文字警告 同时出现
-    const audio = new Audio("b.mp3");
-    audio.volume = 1;
-    try {
-      audio.playbackRate = 0.6 + Math.random() * 0.7;
-      audio.play();
-    } catch(e) {}
-    showWarning(); // 这里！
+    const snd = audioB.cloneNode(true);
+    snd.volume = 1.0;
+    snd.playbackRate = 0.6 + Math.random() * 0.7;
+    snd.play().catch(()=>{});
+    showWarning();
 
     clickCount++;
     tip.innerText = `已点 ${clickCount} 次`;
@@ -201,7 +213,6 @@ poop.onclick = async () => {
     return;
   }
 
-  // 正常模式
   playFunnySound();
   const left = NEED - clickCount;
   if (left > 0) {
