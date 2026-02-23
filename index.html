@@ -134,11 +134,44 @@ function showWarning() {
   setTimeout(() => el.remove(), 1000);
 }
 
+// =============================================
+// 核心修改：随机恐怖畸变音效
+// 40%正常 + 20%极速抽搐 + 20%低频失真 + 20%随机颤音
+// =============================================
 function playBSound() {
   const s = audB.cloneNode(true);
   s.volume = 1;
-  s.playbackRate = 0.6 + Math.random()*0.7;
-  s.play().catch(()=>{});
+  
+  const rand = Math.random();
+  
+  // 40% 概率：正常播放（保持原恐怖感）
+  if (rand < 0.4) {
+    s.playbackRate = 0.9 + Math.random() * 0.2;
+  }
+  // 20% 概率：极速抽搐（尖锐、鬼畜）
+  else if (rand < 0.6) {
+    s.playbackRate = 1.8 + Math.random() * 0.5;
+  }
+  // 20% 概率：低频失真（沉闷、压抑）
+  else if (rand < 0.8) {
+    s.playbackRate = 0.4 + Math.random() * 0.2;
+  }
+  // 20% 概率：随机颤音（忽快忽慢，模拟信号干扰）
+  else {
+    s.playbackRate = 0.7;
+    // 播放过程中随机改变速度，制造"抽搐"感
+    const glitchInterval = setInterval(() => {
+      if (s.paused) {
+        clearInterval(glitchInterval);
+        return;
+      }
+      s.playbackRate = Math.random() > 0.5 ? 1.5 : 0.5;
+    }, 50);
+    // 音效结束后清除定时器
+    s.onended = () => clearInterval(glitchInterval);
+  }
+
+  s.play().catch(() => {});
 }
 
 function playASound() {
