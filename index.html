@@ -124,7 +124,6 @@
   poop.addEventListener('click', () => {
     const sound = new Audio('a.mp3');
     sound.volume = 0.5;
-    sound.play().catch(()=>{});
 
     poop.classList.add('shake');
     setTimeout(()=>poop.classList.remove('shake'),200);
@@ -137,21 +136,26 @@
       tip.innerText = "🎉 惊喜来啦！";
       clickCount = 0;
 
-      if(Math.random() < 0.1){
-        // 10% 突脸鬼
+      // 30% 突脸，70% 原神
+      if(Math.random() < 0.3){
+        jumpVideo.muted = false;
+        jumpVideo.volume = 1.0;
         jumpVideo.style.display = 'block';
         jumpVideo.play();
+
         jumpVideo.onended = () => {
           jumpVideo.style.display = 'none';
           tip.innerText = "再点 10 下有超级惊喜！";
         };
       } else {
-        // 90% 原神
+        sound.play().catch(()=>{});
         window.open('https://ys.mihoyo.com/','_blank');
         setTimeout(()=>{
           tip.innerText = "再点 10 下有超级惊喜！";
         },1000);
       }
+    } else {
+      sound.play().catch(()=>{});
     }
   });
 </script>
