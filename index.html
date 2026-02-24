@@ -21,7 +21,6 @@ body{
   padding:0;
 }
 body.normal{
-  background: -webkit-linear-gradient(135deg,#ff9a9e,#fecfef);
   background: linear-gradient(135deg,#ff9a9e,#fecfef);
 }
 body.horror{background:#000 !important;}
@@ -32,9 +31,7 @@ body.final_glitch {
   animation: final_glitch 0.04s infinite alternate !important;
 }
 @keyframes final_glitch {
-  0%{background:#000;}
-  50%{background:#200000;}
-  100%{background:#000;}
+  0%{background:#000;}50%{background:#200000;}100%{background:#000;}
 }
 
 h1{
@@ -44,7 +41,7 @@ h1{
   animation:bounce 1s infinite alternate;
   margin-bottom: 30px;
   text-align:center;
-  line-height: 1.2;
+  line-height:1.2;
   padding:0 20px;
 }
 body.horror h1{
@@ -56,16 +53,16 @@ body.horror h1{
 @keyframes horrorBounce{from{transform:translateY(0);}to{transform:translateY(-5px);}}
 
 .emoji{
-  font-size: 80px;
+  font-size:80px;
   animation:rotate 3s linear infinite;
   cursor:pointer;
-  margin-bottom: 30px;
+  margin-bottom:30px;
   display:block;
   position:relative;
-  z-index: 9999;
+  z-index:9999;
   padding:30px;
-  touch-action: none;
-  user-select: none;
+  touch-action:none;
+  user-select:none;
 }
 body.horror .emoji{
   filter:brightness(0.1) sepia(1) saturate(10);
@@ -84,16 +81,15 @@ body.horror .emoji{
 .emoji.shake{animation:shake 0.2s ease;}
 
 #tip{
-  font-size: 18px;
+  font-size:18px;
   color:#fff;
   background:rgba(0,0,0,0.3);
   padding:8px 16px;
   border-radius:16px;
-  z-index: 9998;
+  z-index:9998;
   text-align:center;
-  position:relative;
-  max-width: 80%;
-  line-height: 1.4;
+  max-width:80%;
+  line-height:1.4;
 }
 body.horror #tip{
   color:#ff4444;
@@ -103,28 +99,25 @@ body.horror #tip{
 
 #fullVideo{
   position:fixed;
-  top:0;
-  left:0;
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  z-index: 9997;
+  top:0;left:0;
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+  z-index:9997;
   display:none;
   background:#000 !important;
-  border:0;
-  outline:0;
+  border:0;outline:0;
 }
 
 .warning{
   position:fixed;
   color:#ff0000;
-  font-size: 24px;
+  font-size:24px;
   font-weight:bold;
   text-shadow:0 0 12px red;
-  z-index: 99999;
+  z-index:99999;
   animation:warnFlash 0.2s 3;
   pointer-events:none;
-  line-height: 1.2;
 }
 @keyframes warnFlash{
   0%{opacity:0;transform:scale(0.8);}
@@ -141,207 +134,113 @@ body.horror #tip{
 
 <video id="fullVideo" playsinline webkit-playsinline muted></video>
 
-<audio id="aSound" src="a.mp3">
-<audio id="bSound" src="b.mp3">
-<audio id="ambientSound" src="ambient.mp3" loop>
-<video id="video2" src="2.mp4" style="display:none;"></video>
-<video id="video3" src="3.mp4" style="display:none;"></video>
+<audio id="aSound" src="https://cdn.jsdelivr.net/gh/foxfox233/cdn@main/pop.mp3">
+<audio id="bSound" src="https://cdn.jsdelivr.net/gh/foxfox233/cdn@main/horror.mp3">
 
 <script>
-console.log = function(){};
-console.error = function(){};
+console.log = ()=>{};
+console.error = ()=>{};
 
 const IS_HORROR_MODE = Math.random() < 0.3;
-const ua = navigator.userAgent.toLowerCase();
-const isVIA = ua.includes("via");
-const isQuark = ua.includes("quark");
-
 const body = document.body;
 const poop = document.getElementById('poop');
 const tip = document.getElementById('tip');
 const fullVideo = document.getElementById('fullVideo');
-
 const aSound = document.getElementById('aSound');
 const bSound = document.getElementById('bSound');
-const ambientSound = document.getElementById('ambientSound');
-const video2 = document.getElementById('video2');
-const video3 = document.getElementById('video3');
 
 let videoPlaying = false;
 let normalCount = 0, normalCanClick = true;
-let horrorCount = 0, horrorCanClick = true, horrorFirstClick = true;
+let horrorCount = 0, horrorCanClick = true;
 const NEED_CLICK = 10;
-const NORMAL_INTERVAL = 1000;
-const HORROR_INTERVAL = 3000;
 
-window.onload = function() {
-  if(IS_HORROR_MODE){
-    body.className = 'horror';
-    tip.innerText = "不可以玩原神";
-  }else{
-    body.className = 'normal';
-    tip.innerText = "再点 10 下有惊喜！";
-  }
-  document.addEventListener('touchstart', unlockAudio, { once: true });
-  document.addEventListener('click', unlockAudio, { once: true });
-};
-
+let audioUnlocked = false;
 function unlockAudio() {
-  aSound.play().then(()=>aSound.pause());
-  ambientSound.play().then(()=>ambientSound.pause());
-  bSound.play().then(()=>bSound.pause());
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  aSound.play().catch(()=>{});
+  bSound.play().catch(()=>{});
 }
 
-function normalClick() {
+window.onload = ()=>{
+  body.className = IS_HORROR_MODE ? 'horror' : 'normal';
+  tip.innerText = IS_HORROR_MODE ? "不可以玩原神" : "再点 10 下有惊喜！";
+  document.addEventListener('click', unlockAudio, { once:true });
+  document.addEventListener('touchstart', unlockAudio, { once:true });
+  poop.onclick = IS_HORROR_MODE ? horrorClick : normalClick;
+};
+
+function normalClick(){
   if(!normalCanClick) return;
   poop.classList.add('shake');
   setTimeout(()=>poop.classList.remove('shake'),200);
   aSound.currentTime = 0;
-  aSound.volume = 0.5;
-  aSound.play();
+  aSound.volume = 0.6;
+  aSound.play().catch(()=>{});
   normalCanClick = false;
-  setTimeout(()=>normalCanClick = true, NORMAL_INTERVAL);
+  setTimeout(()=>normalCanClick=true, 800);
   normalCount++;
-  const remain = NEED_CLICK - normalCount;
-  if(remain > 0){
-    tip.innerText = `再点 ${remain} 下有惊喜！`;
+  const rem = NEED_CLICK - normalCount;
+  if(rem>0){
+    tip.innerText = `再点 ${rem} 下有惊喜！`;
     return;
   }
-  tip.innerText = "🎉 惊喜来了！";
   normalCount = 0;
+  tip.innerText = "🎉 惊喜来了！";
   window.open("https://ys.mihoyo.com/", "_blank");
-  setTimeout(()=>tip.innerText = "再点 10 下有惊喜！",1000);
+  setTimeout(()=>tip.innerText="再点 10 下有惊喜！", 1000);
 }
 
-function showWarning() {
+function showWarning(){
   const el = document.createElement('div');
   el.className = 'warning';
   el.innerText = '不要玩原神';
-  el.style.left = (10 + Math.random()*80) + 'vw';
-  el.style.top = (10 + Math.random()*80) + 'vh';
+  el.style.left = Math.random()*80+10 + 'vw';
+  el.style.top = Math.random()*80+10 + 'vh';
   document.body.appendChild(el);
-  setTimeout(()=>el.remove(),1000);
+  setTimeout(()=>el.remove(), 1000);
 }
 
-function playHorrorSound() {
-  try {
-    const audio = new Audio('b.mp3');
-    audio.volume = 1;
-    const rand = Math.random();
-    if(rand<0.4) audio.playbackRate = 1.0;
-    else if(rand<0.6) audio.playbackRate = 1.8;
-    else if(rand<0.8) audio.playbackRate = 0.5;
-    else {
-      audio.playbackRate = 0.7;
-      const gi = setInterval(()=>{
-        if(audio.paused) clearInterval(gi);
-        else audio.playbackRate = Math.random()>0.5 ? 1.5 : 0.5;
-      },50);
-      audio.onended = ()=>clearInterval(gi);
-    }
-    audio.play();
-    bSound.currentTime = 0;
-    bSound.volume = 1;
-    bSound.play();
-  } catch(e) {
-    bSound.currentTime = 0;
-    bSound.play();
-  }
-}
-
-// 夸克视频修复：先清空再赋值，避免缓存导致的播放异常
-function playVideo(src) {
+function playVideoSafe(src){
   videoPlaying = true;
   fullVideo.style.display = 'block';
-  fullVideo.src = ''; // 先清空，夸克不卡
-  setTimeout(() => {
+  fullVideo.muted = true;
+  fullVideo.src = '';
+  setTimeout(()=>{
     fullVideo.src = src;
-    fullVideo.muted = true;
-    fullVideo.play();
-    setTimeout(() => {
-      fullVideo.muted = false;
-      fullVideo.volume = 1;
-    }, 100);
-  }, 50);
+    fullVideo.load();
+    fullVideo.play().then(()=>{
+      setTimeout(()=>{
+        fullVideo.muted = false;
+        fullVideo.volume = 1;
+      },100);
+    }).catch(()=>{});
+  },50);
 }
 
-function horrorClick() {
+function horrorClick(){
   if(videoPlaying || !horrorCanClick) return;
   poop.classList.add('shake');
   setTimeout(()=>poop.classList.remove('shake'),200);
-
-  if(horrorFirstClick) {
-    horrorFirstClick = false;
-    videoPlaying = true;
-
-    ambientSound.currentTime = 0;
-    ambientSound.volume = 0.25;
-    ambientSound.play();
-
-    // VIA 终极方案：如果是 VIA，直接放弃视频，只播放底噪和音效
-    if (isVIA) {
-      // VIA 不播放视频，只保留底噪和音效，保证体验
-      setTimeout(() => {
-        videoPlaying = false;
-        body.classList.add('flash');
-        tip.innerText = `还剩 ${NEED_CLICK} 次`;
-      }, 2000);
-    } else {
-      // 其他浏览器（夸克/Chrome）正常播放
-      playVideo(video2.src);
-      fullVideo.onended = function() {
-        fullVideo.style.display = 'none';
-        videoPlaying = false;
-        body.classList.add('flash');
-        tip.innerText = `还剩 ${NEED_CLICK} 次`;
-      };
-    }
-    return;
-  }
-
-  if(horrorCount >= NEED_CLICK) {
-    ambientSound.pause();
-    window.open("https://mc.kurogames.com/m/", "_blank");
-    return;
-  }
-
   horrorCanClick = false;
-  setTimeout(()=>horrorCanClick = true, HORROR_INTERVAL);
-
-  playHorrorSound();
-  showWarning();
-
+  setTimeout(()=>horrorCanClick=true, 3000);
   horrorCount++;
-  const remain = NEED_CLICK - horrorCount;
-  tip.innerText = remain>0 ? `还剩 ${remain} 次` : "结束了...";
 
-  if(remain === 1) body.classList.add('final_glitch');
+  body.classList.add('flash');
+  setTimeout(()=>body.classList.remove('flash'), 500);
 
-  if(horrorCount === 5) {
-    videoPlaying = true;
-    if (isVIA) {
-      // VIA 不播放视频3，直接跳过
-      setTimeout(() => {
-        videoPlaying = false;
-      }, 2000);
-    } else {
-      // 夸克/Chrome 正常播放
-      playVideo(video3.src);
-      fullVideo.onended = function() {
-        fullVideo.style.display = 'none';
-        videoPlaying = false;
-      };
-    }
+  showWarning();
+  bSound.currentTime = 0;
+  bSound.volume = 1;
+  bSound.play().catch(()=>{});
+
+  if(horrorCount >=5){
+    body.classList.add('final_glitch');
+    setTimeout(()=>{
+      playVideoSafe('https://cdn.jsdelivr.net/gh/foxfox233/cdn@main/jumpscare.mp4');
+    },800);
   }
 }
-
-poop.ontouchstart = function(e) {
-  e.preventDefault();
-  IS_HORROR_MODE ? horrorClick() : normalClick();
-};
-poop.onclick = function() {
-  IS_HORROR_MODE ? horrorClick() : normalClick();
-};
 </script>
 </body>
 </html>
